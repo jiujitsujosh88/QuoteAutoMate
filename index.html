@@ -1,26 +1,19 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Quote AutoMate – Skeleton</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f1115"/>
-
   <style>
-    :root{
-      --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
-      --accent:#3aa3ff; --border:#232836;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
+    :root{--bg:#0f1115;--card:#151924;--text:#e9eef8;--muted:#a9b3c9;--accent:#3aa3ff;--border:#232836}
+    *{box-sizing:border-box}html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
 
-    /* Header */
-    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;
-      justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
-      backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
+    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
+      padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
+      backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
     .title-wrap{display:flex;align-items:center;gap:10px}
     .app-title{font-weight:700;letter-spacing:.2px}
     .badges{display:flex;gap:8px;align-items:center}
@@ -29,30 +22,24 @@
     .sw.ok{color:#5ee17d}.sw.miss{color:#ffcf66}
     .btn-mini{font-size:.72rem;padding:4px 8px;border-radius:8px;border:1px solid var(--border);background:#182034;color:var(--text);cursor:pointer}
 
-    /* Main */
-    #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
-    .tab-pane{display:none}
-    .tab-pane.active{display:block}
+    #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px)}
+    .tab-pane{display:none}.tab-pane.active{display:block}
     .tab-pane::before{content:attr(aria-label);display:inline-block;font-weight:700;color:var(--muted);
-      margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;}
-    .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);}
+      margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px}
+    .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted)}
 
-    /* Bottom Tabbar (5 buttons + More) */
     .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);
-      gap:0;padding:8px;border-top:1px solid var(--border);
-      background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);}
+      gap:0;padding:8px;border-top:1px solid var(--border);background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter:blur(8px)}
     .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px}
-    .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14);}
+    .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14)}
 
-    /* More sheet */
     .more-panel[hidden]{display:none}
     .more-panel{position:fixed;inset:0;z-index:40}
     .more-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.35)}
-    .more-sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);
-      border-top-left-radius:18px;border-top-right-radius:18px;border:1px solid var(--border);
-      padding:12px;animation:slideUp .18s ease-out;}
+    .more-sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);border-top-left-radius:18px;border-top-right-radius:18px;
+      border:1px solid var(--border);padding:12px;animation:slideUp .18s ease-out}
     @keyframes slideUp{from{transform:translateY(20px);opacity:.6}to{transform:translateY(0);opacity:1}}
-    .more-title{font-weight:700;padding:6px 4px 10px 4px;}
+    .more-title{font-weight:700;padding:6px 4px 10px 4px}
     .more-item,.more-close,.more-update,.install-btn{width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
       border:1px solid var(--border);border-radius:10px;padding:12px}
     .more-close{text-align:center;background:#182034}
@@ -61,11 +48,8 @@
   </style>
 </head>
 <body>
-  <!-- Header -->
   <header class="app-header">
-    <div class="title-wrap">
-      <div class="app-title">Quote AutoMate</div>
-    </div>
+    <div class="title-wrap"><div class="app-title">Quote AutoMate</div></div>
     <div class="badges">
       <div id="sw-status" class="badge sw">SW: …</div>
       <div id="net-status" class="badge net">Online</div>
@@ -73,22 +57,17 @@
     </div>
   </header>
 
-  <!-- Main content -->
   <main id="tab-content">
-    <!-- Primary Tabs -->
     <section id="tab-quotes" class="tab-pane" role="region" aria-label="Quotes"></section>
     <section id="tab-history" class="tab-pane" role="region" aria-label="History"></section>
     <section id="tab-customers" class="tab-pane" role="region" aria-label="Customers"></section>
     <section id="tab-presets" class="tab-pane" role="region" aria-label="Presets"></section>
     <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
-
-    <!-- Secondary Tabs -->
     <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
     <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
     <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
   </main>
 
-  <!-- Bottom Tab Bar -->
   <nav class="tabbar" aria-label="Bottom Tabs">
     <button class="tab-btn" data-tab="quotes" aria-label="Quotes">Quotes</button>
     <button class="tab-btn" data-tab="history" aria-label="History">History</button>
@@ -98,7 +77,6 @@
     <button class="tab-btn" data-tab="more" aria-label="More">More</button>
   </nav>
 
-  <!-- More panel -->
   <div id="more-panel" class="more-panel" hidden aria-hidden="true" style="display:none">
     <div class="more-sheet" role="dialog" aria-modal="true" aria-labelledby="more-title">
       <div id="more-title" class="more-title">More</div>
@@ -114,85 +92,53 @@
 
   <script>
   (function(){
-    const State = { activeTab: 'quotes', deferredPrompt:null };
-    const $ = (sel, root=document) => root.querySelector(sel);
-    const $all = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const State = { activeTab:'quotes', deferredPrompt:null };
+    const $=(s,r=document)=>r.querySelector(s);
+    const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 
-    // Network badge
-    function setOnlineStatus(){
-      const el = $('#net-status'); if(!el) return;
-      const online = navigator.onLine;
-      el.textContent = online ? 'Online' : 'Offline';
-      el.classList.toggle('online', online);
-      el.classList.toggle('offline', !online);
+    /* Network badge */
+    function setOnline(){ const el=$('#net-status'); if(!el) return;
+      const on=navigator.onLine; el.textContent=on?'Online':'Offline';
+      el.classList.toggle('online',on); el.classList.toggle('offline',!on);
     }
-    function initNet(){
-      setOnlineStatus();
-      addEventListener('online', setOnlineStatus);
-      addEventListener('offline', setOnlineStatus);
-    }
+    function initNet(){ setOnline(); addEventListener('online',setOnline); addEventListener('offline',setOnline); }
 
-    // SW badge
-    function setSWStatus(text, ok){
-      const el = $('#sw-status'); if(!el) return;
-      el.textContent = 'SW: ' + text;
-      el.classList.remove('ok','miss');
-      el.classList.add(ok ? 'ok' : 'miss');
+    /* SW badge */
+    function setSW(text,ok){ const el=$('#sw-status'); if(!el) return;
+      el.textContent='SW: '+text; el.classList.remove('ok','miss'); el.classList.add(ok?'ok':'miss');
     }
     function initSWBadge(){
-      if (navigator.serviceWorker && navigator.serviceWorker.controller){
-        setSWStatus('registered', true);
-      } else {
-        setSWStatus('not registered', false);
-      }
-      navigator.serviceWorker?.addEventListener('controllerchange', ()=> setSWStatus('registered', true));
+      if(navigator.serviceWorker && navigator.serviceWorker.controller){ setSW('registered',true); }
+      else{ setSW('not registered',false); }
+      navigator.serviceWorker?.addEventListener('controllerchange',()=>setSW('registered',true));
     }
 
-    // Tabs
+    /* Tabs */
     function showTab(tab){
-      $all('.tab-pane').forEach(p => { p.classList.remove('active'); p.hidden = true; });
-      const pane = $('#tab-' + tab);
-      if (pane){ pane.hidden = false; pane.classList.add('active'); }
-      $all('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
-      hideMore();
-      State.activeTab = tab;
-      try { localStorage.setItem('lastTab', tab); } catch(_) {}
+      $$('.tab-pane').forEach(p=>{ p.classList.remove('active'); p.hidden=true; });
+      const pane=$('#tab-'+tab); if(pane){ pane.hidden=false; pane.classList.add('active'); }
+      $$('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+      hideMore(); State.activeTab=tab; try{ localStorage.setItem('lastTab',tab); }catch(_){}
     }
-
-    // More sheet
-    function openMore(){
-      const p = $('#more-panel'); if(!p) return;
-      p.hidden = false; p.style.display = 'block'; p.setAttribute('aria-hidden','false');
-    }
-    function hideMore(){
-      const p = $('#more-panel'); if(!p) return;
-      p.hidden = true; p.style.display = 'none'; p.setAttribute('aria-hidden','true');
-    }
+    function openMore(){ const p=$('#more-panel'); if(!p) return; p.hidden=false; p.style.display='block'; p.setAttribute('aria-hidden','false'); }
+    function hideMore(){ const p=$('#more-panel'); if(!p) return; p.hidden=true; p.style.display='none'; p.setAttribute('aria-hidden','true'); }
 
     function initTabs(){
-      $all('.tab-btn').forEach(btn=>{
-        btn.addEventListener('click', () => {
-          const t = btn.dataset.tab;
-          if (t === 'more'){ openMore(); return; }
-          showTab(t);
-        }, {passive:true});
+      $$('.tab-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{ const t=btn.dataset.tab; if(t==='more'){ openMore(); return; } showTab(t); },{passive:true});
       });
-      $all('.more-item').forEach(item=>{
-        item.addEventListener('click', (e)=>{
-          e.preventDefault(); e.stopPropagation();
-          const t = item.dataset.tab; if (t) showTab(t);
-        }, {passive:false});
+      $$('.more-item').forEach(it=>{
+        it.addEventListener('click',(e)=>{ e.preventDefault(); e.stopPropagation(); const t=it.dataset.tab; if(t) showTab(t); },{passive:false});
       });
-      $('#more-close')?.addEventListener('click', (e)=>{ e.preventDefault(); hideMore(); });
-      $('#more-backdrop')?.addEventListener('click', hideMore);
-      let last = 'quotes';
-      try { const saved = localStorage.getItem('lastTab'); if (saved) last = saved; } catch(_) {}
+      $('#more-close')?.addEventListener('click',(e)=>{ e.preventDefault(); hideMore(); });
+      $('#more-backdrop')?.addEventListener('click',hideMore);
+      let last='quotes'; try{ const s=localStorage.getItem('lastTab'); if(s) last=s; }catch(_){}
       showTab(last);
     }
 
-    // Placeholders
+    /* Placeholders */
     function mountPlaceholders(){
-      const fillers = {
+      const text={
         quotes:'Start your quote flow here.',
         history:'Recent quotes. (Later: quick-add from prior tickets.)',
         customers:'Customer list & quick search.',
@@ -202,59 +148,48 @@
         business:'Business name, logo, contact, financial defaults.',
         resources:'Employees, sublets, suppliers.'
       };
-      Object.entries(fillers).forEach(([k,t])=>{
-        const el = $('#tab-'+k);
-        if (el && !el.dataset.mounted){
-          const block = document.createElement('div');
-          block.className = 'placeholder'; block.textContent = t;
-          el.appendChild(block); el.dataset.mounted='1';
-        }
+      Object.entries(text).forEach(([k,v])=>{
+        const el=$('#tab-'+k); if(el && !el.dataset.mounted){ const d=document.createElement('div'); d.className='placeholder'; d.textContent=v; el.appendChild(d); el.dataset.mounted='1'; }
       });
     }
 
-    // Force update
+    /* Force update */
     async function forceUpdate(){
-      try {
-        if ('caches' in window) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map(k => caches.delete(k)));
-        }
-        if (navigator.serviceWorker?.controller) {
-          navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});
-        }
-      } catch(e){}
+      try{
+        if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
+        if(navigator.serviceWorker?.controller){ navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'}); }
+      }catch(e){}
       location.reload();
     }
-    function initForceUpdate(){
-      $('#force-update')?.addEventListener('click', forceUpdate);
-      $('#force-update-top')?.addEventListener('click', forceUpdate);
-    }
+    function initForceUpdate(){ $('#force-update')?.addEventListener('click',forceUpdate); $('#force-update-top')?.addEventListener('click',forceUpdate); }
 
-    // Install prompt
+    /* Install prompt */
     function initInstall(){
-      window.addEventListener('beforeinstallprompt', (e)=>{
-        e.preventDefault();
-        State.deferredPrompt = e;
-        const btn = $('#install-btn');
-        if (btn){ btn.hidden = false; }
+      window.addEventListener('beforeinstallprompt',(e)=>{
+        e.preventDefault(); State.deferredPrompt=e;
+        const btn=$('#install-btn'); if(btn){ btn.hidden=false; }
       });
       $('#install-btn')?.addEventListener('click', async ()=>{
-        if (!State.deferredPrompt) return;
+        if(!State.deferredPrompt) return;
         State.deferredPrompt.prompt();
-        const choice = await State.deferredPrompt.userChoice;
-        State.deferredPrompt = null;
-        const b = $('#install-btn'); if (b) b.hidden = true;
+        try{ await State.deferredPrompt.userChoice; }catch(_){}
+        State.deferredPrompt=null; const b=$('#install-btn'); if(b) b.hidden=true;
       });
     }
 
-    // Boot
-    document.addEventListener('DOMContentLoaded', ()=>{
-      initNet();
-      initSWBadge();
-      initTabs();
-      mountPlaceholders();
-      initForceUpdate();
-      initInstall();
+    /* SW registration (crucial!) */
+    async function registerSW(){
+      if(!('serviceWorker' in navigator)) { setSW('unsupported',false); return; }
+      try{
+        const reg = await navigator.serviceWorker.register('./service-worker.js', { scope:'./' });
+        if(reg) setSW('registered',true);
+      }catch(e){
+        setSW('failed',false);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+      initNet(); initSWBadge(); initTabs(); mountPlaceholders(); initForceUpdate(); initInstall(); registerSW();
     });
   })();
   </script>
