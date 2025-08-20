@@ -1,106 +1,112 @@
-// ---------- Utilities ----------
-const $ = (sel, root = document) => root.querySelector(sel);
-const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+// app.js
+(function(){
+  const State = { activeTab: 'quotes' };
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $all = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-// Network badge
-function updateNet() {
-  const el = $("#net");
-  if (!el) return;
-  const on = navigator.onLine;
-  el.textContent = on ? "Online" : "Offline";
-  el.className = "pill " + (on ? "ok" : "warn");
-}
-addEventListener("online", updateNet);
-addEventListener("offline", updateNet);
-updateNet();
+  // ---- Service Worker badge ----
+  function setSwBadge(){
+    const el = $('#sw-badge'); if(!el) return;
+    const ok = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+    el.textContent = ok ? 'SW: registered' : 'SW: not registered';
+    el.classList.toggle('ok', ok);
+    el.classList.toggle('miss', !ok);
+  }
 
-// ---------- Tabs ----------
-function showTab(name) {
-  $$(".tab").forEach(p => p.classList.remove("active"));
-  const pane = $("#tab-" + name);
-  if (pane) pane.classList.add("active");
+  // ---- Network badge ----
+  function setOnlineStatus(){
+    const el = $('#net-status'); if(!el) return;
+    const online = navigator.onLine;
+    el.textContent = online ? 'Online' : 'Offline';
+    el.classList.toggle('online', online);
+    el.classList.toggle('offline', !online);
+  }
+  function initNet(){
+    setOnlineStatus();
+    addEventListener('online', setOnlineStatus);
+    addEventListener('offline', setOnlineStatus);
+  }
 
-  $$(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === name));
-  localStorage.setItem("lastTab", name);
+  // ---- Tabs ----
+  function showTab(tab){
+    $all('.tab-pane').forEach(p => { p.classList.remove('active'); p.hidden = true; });
+    const pane = $('#tab-' + tab);
+    if (pane){ pane.hidden = false; pane.classList.add('active'); }
+    $all('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+    closeMore();
+    State.activeTab = tab;
+    try { localStorage.setItem('lastTab', tab); } catch(_) {}
+  }
 
-  // Close More if open
-  const dlg = $("#more-dialog");
-  if (dlg?.open) dlg.close();
-}
-
-function initTabs() {
-  $$(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const t = btn.dataset.tab;
-      if (t === "more") {
-        $("#more-dialog").showModal();
-      } else {
+  function initTabs(){
+    // bottom buttons
+    $all('.tab-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        const t = btn.dataset.tab;
+        if (t === 'more'){ openMore(); return; }
         showTab(t);
-      }
-    }, { passive: true });
-  });
-
-  // Wire sheet items to tabs
-  $$("#more-dialog .sheet-item[data-tab]").forEach(item => {
-    item.addEventListener("click", () => showTab(item.dataset.tab));
-  });
-  $("#close-more")?.addEventListener("click", () => $("#more-dialog").close());
-
-  // Restore last tab
-  showTab(localStorage.getItem("lastTab") || "quotes");
-}
-initTabs();
-
-// ---------- Force Update ----------
-$("#force-update")?.addEventListener("click", async () => {
-  try {
-    if ("caches" in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
-    }
-    localStorage.removeItem("lastTab");
-    if (navigator.serviceWorker?.controller) {
-      navigator.serviceWorker.controller.postMessage({ type: "SKIP_WAITING" });
-    }
-  } catch (e) {
-    console.warn("forceUpdate error", e);
-  }
-  location.reload();
-});
-
-// ---------- Service Worker ----------
-(function registerSW() {
-  const swBadge = $("#sw");
-  if (!("serviceWorker" in navigator)) {
-    if (swBadge) swBadge.textContent = "SW: unsupported";
-    return;
-  }
-  navigator.serviceWorker.register("./service-worker.js")
-    .then(reg => {
-      if (swBadge) swBadge.textContent = "SW: registered";
-      // Optional: listen for updates
-      reg.addEventListener("updatefound", () => {
-        // could surface UI later
-      });
-    })
-    .catch(err => {
-      if (swBadge) swBadge.textContent = "SW: failed";
-      console.error("SW register failed:", err);
+      }, {passive:true});
     });
-})();
 
-// ---------- Install prompt (native-like) ----------
-let deferredPrompt = null;
-window.addEventListener("beforeinstallprompt", (e) => {
-  // Chrome sometimes suppresses auto UI; we prompt immediately
-  e.preventDefault();
-  deferredPrompt = e;
-  // small delay so it doesn't race with first paint
-  setTimeout(async () => {
+    // restore last
+    let last = 'quotes';
+    try { const saved = localStorage.getItem('lastTab'); if (saved) last = saved; } catch(_) {}
+    showTab(last);
+  }
+
+  // ---- More dialog (native <dialog>) ----
+  function openMore(){
+    const dlg = $('#moreDialog');
+    if (!dlg) return;
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    // wire inside buttons each time (safe idempotent)
+    $all('.more-item', dlg).forEach(item=>{
+      item.onclick = (e)=>{ e.preventDefault(); e.stopPropagation(); showTab(item.dataset.tab); };
+    });
+    $all('[data-close]', dlg).forEach(x=>{
+      x.onclick = ()=> { try{ dlg.close(); }catch(_){} };
+    });
+  }
+  function closeMore(){
+    const dlg = $('#moreDialog');
+    if (dlg && dlg.open) { try{ dlg.close(); }catch(_){} }
+  }
+
+  // ---- Force update (clear caches + reload) ----
+  async function forceUpdate(){
     try {
-      await deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-    } catch (_) {}
-    deferredPrompt = null;
-  }, 300);
-});
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if (navigator.serviceWorker?.controller) {
+        navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});
+      }
+    } catch(e){}
+    location.reload();
+  }
+  function initForceUpdate(){
+    $('#force-update')?.addEventListener('click', forceUpdate);
+  }
+
+  // ---- SW registration (don’t change your existing file names) ----
+  function registerSW(){
+    if ('serviceWorker' in navigator){
+      navigator.serviceWorker.register('service-worker.js')
+        .then(()=>setSwBadge())
+        .catch(()=>setSwBadge());
+      navigator.serviceWorker.addEventListener('controllerchange', setSwBadge);
+    } else {
+      setSwBadge();
+    }
+  }
+
+  // ---- Boot ----
+  document.addEventListener('DOMContentLoaded', ()=>{
+    initNet();
+    initTabs();
+    initForceUpdate();
+    registerSW();
+    setSwBadge(); // initial
+  });
+})();
