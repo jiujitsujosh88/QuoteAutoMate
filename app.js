@@ -1,118 +1,135 @@
-// ------------------------------
-// Quote AutoMate - Skeleton app.js
-// ------------------------------
+// Quote AutoMate - App.js
+(() => {
+  const State = { activeTab: 'quotes', deferredPrompt: null };
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $all = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-(function(){
-  const State = { activeTab: 'quotes' };
-
-  // ---- Helpers ----
-  function $(sel, root = document) { return root.querySelector(sel); }
-  function $all(sel, root = document) { return Array.from(root.querySelectorAll(sel)); }
-
-  // ---- Network status ----
+  /* ---------------- Network Badge ---------------- */
   function setOnlineStatus() {
-    try {
-      const el = $('#net-status');
-      if (!el) return;
-      const online = navigator.onLine;
-      el.textContent = online ? 'Online' : 'Offline';
-      el.classList.toggle('online', online);
-      el.classList.toggle('offline', !online);
-    } catch(_) {}
+    const el = $('#net-status');
+    if (!el) return;
+    const online = navigator.onLine;
+    el.textContent = online ? 'Online' : 'Offline';
+    el.classList.toggle('online', online);
+    el.classList.toggle('offline', !online);
   }
-  function initNetStatus() {
+  function initNet() {
     setOnlineStatus();
-    window.addEventListener('online', setOnlineStatus);
-    window.addEventListener('offline', setOnlineStatus);
+    addEventListener('online', setOnlineStatus);
+    addEventListener('offline', setOnlineStatus);
   }
 
-  // ---- Tabs ----
+  /* ---------------- Tabs ---------------- */
   function showTab(tab) {
-    try {
-      // Hide all panes
-      $all('.tab-pane').forEach(pane => {
-        pane.classList.remove('active');
-        pane.hidden = true;
-      });
-
-      // Show selected pane
-      const pane = $(`#tab-${tab}`);
-      if (pane) {
-        pane.hidden = false;
-        pane.classList.add('active');
-      }
-
-      // Update bottom tab active state
-      $all('.tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tab);
-      });
-
-      // Close More sheet if open
-      hideMore();
-
-      State.activeTab = tab;
-      try { localStorage.setItem('lastTab', tab); } catch (_) {}
-    } catch(e) {
-      // no-op
-    }
+    $all('.tab-pane').forEach(p => { p.classList.remove('active'); p.hidden = true; });
+    const pane = $('#tab-' + tab);
+    if (pane) { pane.hidden = false; pane.classList.add('active'); }
+    $all('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+    hideMore();
+    State.activeTab = tab;
+    try { localStorage.setItem('lastTab', tab); } catch(_) {}
   }
 
-  function openMore(){ const p = $('#more-panel'); if (p) p.removeAttribute('hidden'); }
-  function hideMore(){ const p = $('#more-panel'); if (p) p.setAttribute('hidden', ''); }
+  /* ---------------- More (dialog version) ---------------- */
+  function openMore() {
+    const dlg = $('#more-dialog');
+    if (dlg) dlg.showModal();
+  }
+  function hideMore() {
+    const dlg = $('#more-dialog');
+    if (dlg && dlg.open) dlg.close();
+  }
 
   function initTabs() {
-    // Bottom nav buttons
     $all('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', e => {
         const t = btn.dataset.tab;
         if (t === 'more') { openMore(); return; }
         showTab(t);
-      });
+      }, { passive: true });
     });
 
-    // (Inline onclick fallbacks also exist in index.html)
+    $all('.more-item').forEach(item => {
+      item.addEventListener('click', e => {
+        e.preventDefault(); e.stopPropagation();
+        const t = item.dataset.tab;
+        if (t) { showTab(t); hideMore(); }
+      }, { passive: false });
+    });
+    $('#more-close')?.addEventListener('click', () => hideMore());
 
-    // Restore last tab
     let last = 'quotes';
-    try {
-      const saved = localStorage.getItem('lastTab');
-      if (saved) last = saved;
-    } catch(_) {}
+    try { const saved = localStorage.getItem('lastTab'); if (saved) last = saved; } catch(_) {}
     showTab(last);
   }
 
-  // ---- Minimal placeholder mount (safe to remove later) ----
+  /* ---------------- Placeholders ---------------- */
   function mountPlaceholders() {
     const fillers = {
       quotes: 'Start your quote flow here.',
-      presets: 'Your saved presets will appear here.',
+      history: 'Recent quotes. (Later: quick-add from prior tickets.)',
       customers: 'Customer list & quick search.',
+      presets: 'Your saved presets will appear here.',
       analytics: 'KPIs & date-range reports.',
       settings: 'Language, currency, role.',
       business: 'Business name, logo, contact, financial defaults.',
       resources: 'Employees, sublets, suppliers.'
     };
-    Object.entries(fillers).forEach(([key, text]) => {
-      const el = $(`#tab-${key}`);
+    Object.entries(fillers).forEach(([k, t]) => {
+      const el = $('#tab-' + k);
       if (el && !el.dataset.mounted) {
         const block = document.createElement('div');
         block.className = 'placeholder';
-        block.textContent = text;
+        block.textContent = t;
         el.appendChild(block);
         el.dataset.mounted = '1';
       }
     });
   }
 
-  // ---- Expose to window for inline fallbacks ----
-  window.showTab = showTab;
-  window.openMore = openMore;
-  window.hideMore = hideMore;
+  /* ---------------- Force Update ---------------- */
+  async function forceUpdate() {
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if (navigator.serviceWorker?.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+      }
+    } catch (e) {}
+    location.reload();
+  }
+  function initForceUpdate() {
+    $('#force-update')?.addEventListener('click', forceUpdate);
+  }
 
-  // ---- Boot ----
+  /* ---------------- PWA Install ---------------- */
+  function initInstallPrompt() {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      State.deferredPrompt = e;
+      const btn = $('#install-btn');
+      if (btn) btn.hidden = false;
+      btn?.addEventListener('click', async () => {
+        if (!State.deferredPrompt) return;
+        State.deferredPrompt.prompt();
+        const { outcome } = await State.deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          console.log('App installed');
+        }
+        State.deferredPrompt = null;
+        btn.hidden = true;
+      });
+    });
+  }
+
+  /* ---------------- Boot ---------------- */
   document.addEventListener('DOMContentLoaded', () => {
-    initNetStatus();
+    initNet();
     initTabs();
     mountPlaceholders();
+    initForceUpdate();
+    initInstallPrompt();
   });
 })();
