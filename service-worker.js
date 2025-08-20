@@ -1,60 +1,72 @@
-/* service-worker.js — QAM skeleton robust SW for GitHub Pages */
-const VERSION = 'qam-v7';
-const SCOPE = self.registration.scope; // e.g. https://<user>.github.io/QuoteAutoMate/
-const toAbs = (p) => new URL(p, SCOPE).toString();
+/* Quote AutoMate – PWA Service Worker (matching index.html + manifest)
+   Cache strategy: cache-first for app shell with network fallback for other requests.
+*/
+const CACHE_NAME = "qam-shell-v3";
 
-const ASSETS = [
-  toAbs('./'),
-  toAbs('./index.html'),
-  toAbs('./manifest.json'),
-  toAbs('./icons/icon-192.png'),
-  toAbs('./icons/icon-512.png')
+// Files to precache (must match what the app needs to run offline)
+const PRECACHE = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
-self.addEventListener('install', (event) => {
+// Install: cache the app shell
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(VERSION).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE))
   );
+  // Activate new SW immediately on next reload if we message SKIP_WAITING
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
+// Activate: clean up old caches, claim control
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(k => (k === VERSION ? null : caches.delete(k))))
-    )
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k))
+      );
+      await self.clients.claim();
+    })()
   );
-  self.clients.claim(); // control existing clients
 });
 
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  const accept = req.headers.get('accept') || '';
-  const isHTML = accept.includes('text/html');
-
-  if (isHTML) {
-    // Network-first for documents, fallback to cache (or root)
-    event.respondWith(
-      fetch(req)
-        .then(res => {
-          const copy = res.clone();
-          caches.open(VERSION).then(cache => cache.put(req, copy));
-          return res;
-        })
-        .catch(() =>
-          caches.match(req).then(r => r || caches.match(toAbs('./')))
-        )
-    );
-  } else {
-    // Cache-first for static
-    event.respondWith(
-      caches.match(req).then(r => r || fetch(req))
-    );
-  }
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') {
+// Optional: accept a message from the app to skip waiting
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
+});
+
+// Fetch: cache-first for same-origin requests, network fallback
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+
+  // Only handle GET & same-origin
+  if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin) {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(req).then((cached) => {
+      if (cached) return cached;
+      return fetch(req)
+        .then((resp) => {
+          // Cache a copy of successful same-origin responses
+          const respClone = resp.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, respClone));
+          return resp;
+        })
+        .catch(() => {
+          // Offline fallback: if request was “/”, serve shell
+          if (req.mode === "navigate" || req.destination === "document") {
+            return caches.match("./index.html");
+          }
+          return new Response("", { status: 503, statusText: "Offline" });
+        });
+    })
+  );
 });
