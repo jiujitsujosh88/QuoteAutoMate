@@ -1,49 +1,99 @@
-/* ===== styles.css (v0.2.6) ===== */
-:root { --teal:#0d9488; --bg:#f8fafc; --ink:#0f172a; --muted:#64748b; --line:#e5e7eb; --sheet:#f1f5f9; }
+:root{
+  --bg:#0f1115;
+  --card:#151924;
+  --text:#e9eef8;
+  --muted:#a9b3c9;
+  --accent:#3aa3ff;
+  --accent-2:#2dd4bf;
+  --bar:#0b0d12;
+  --border:#232836;
+}
+
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;font-family:system-ui,Arial,sans-serif;color:var(--ink);background:var(--bg)}
-a{color:var(--teal)}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+}
 
+/* Header */
 .app-header{
-  position:sticky;top:0;z-index:20;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:12px 16px;background:#fff;border-bottom:1px solid var(--line)
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px;
+  background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
+  backdrop-filter: blur(8px);
+  border-bottom:1px solid var(--border);
 }
-.app-header h1{font-size:18px;margin:0}
-#netStatus{font-size:12px}
-.net-online{color:#16a34a}
-.net-offline{color:#dc2626}
+.app-title{font-weight:700; letter-spacing:.2px}
+.net{
+  font-size:.78rem; padding:4px 8px; border-radius:999px; border:1px solid var(--border);
+  background:#101521;
+}
+.net.online{color:#5ee17d}
+.net.offline{color:#ff8b8b}
 
-.container{
-  padding:16px;max-width:900px;margin:0 auto;
-  padding-bottom:96px; /* space for bottom nav */
+/* Main area */
+#tab-content{
+  padding:16px;
+  padding-bottom:88px; /* room for tabbar */
+  min-height:calc(100dvh - 120px);
 }
-.hint{color:var(--muted);margin:0 0 8px}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
 
-.tab{
-  background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;min-height:180px
+/* Tabbar */
+.tabbar{
+  position:fixed; bottom:0; left:0; right:0; z-index:20;
+  display:grid; grid-template-columns:repeat(5,1fr);
+  gap:0; padding:8px;
+  border-top:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));
+  backdrop-filter: blur(8px);
 }
+.tab-btn{
+  background:transparent; color:var(--muted);
+  border:none; padding:10px 6px; border-radius:10px;
+  font-weight:600; letter-spacing:.2px;
+}
+.tab-btn.active{color:var(--text); background:rgba(58,163,255,.14);}
 
-/* Bottom nav */
-.bottom-nav{
-  position:fixed;left:0;right:0;bottom:0;z-index:25;
-  display:flex;gap:6px;justify-content:space-between;
-  padding:8px; background:#fffffffb; backdrop-filter: blur(6px);
-  border-top:1px solid var(--line)
+/* More panel */
+.more-panel[hidden]{display:none}
+.more-panel{
+  position:fixed; inset:0; z-index:40;
 }
-.nav-btn{
-  flex:1; padding:10px 6px; font-size:12px;
-  border:1px solid var(--line); background:#fff; border-radius:10px;
+.more-backdrop{
+  position:absolute; inset:0;
+  background:rgba(0,0,0,.35);
 }
-.nav-btn.active{border-color:var(--teal); color:var(--teal); font-weight:600}
+.more-sheet{
+  position:absolute; left:0; right:0; bottom:0;
+  background:var(--card);
+  border-top-left-radius:18px; border-top-right-radius:18px;
+  border:1px solid var(--border);
+  padding:12px;
+  animation:slideUp .18s ease-out;
+}
+@keyframes slideUp {
+  from { transform:translateY(20px); opacity:.6; }
+  to { transform:translateY(0); opacity:1; }
+}
+.more-title{font-weight:700; padding:6px 4px 10px 4px;}
+.more-item, .more-close{
+  width:100%; text-align:left; margin:6px 0;
+  background:#101521; color:var(--text);
+  border:1px solid var(--border); border-radius:10px; padding:12px;
+}
+.more-close{text-align:center; background:#182034}
 
-/* More drawer (sheet above nav) */
-.drawer{
-  position:fixed;left:0;right:0;bottom:60px;z-index:26;
-  margin:0; padding:10px; background:var(--sheet); border-top:1px dashed #94a3b8;
-  display:flex;gap:8px;flex-wrap:wrap;justify-content:center
-}
-.drawer-link{
-  padding:8px 12px;border:1px solid #cbd5e1;background:#fff;border-radius:10px;font-size:12px
+/* Simple placeholder blocks so panes aren't “empty” */
+.tab-pane::before{
+  content: attr(aria-label);
+  display:inline-block;
+  font-weight:700; color:var(--muted);
+  margin-bottom:10px; padding:6px 10px;
+  border:1px solid var(--border); border-radius:8px;
 }
