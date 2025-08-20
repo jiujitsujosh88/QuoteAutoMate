@@ -1,95 +1,109 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>QuoteAutoMate</title>
+  <title>Quote AutoMate – Skeleton</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1115"/>
 
-  <!-- PWA -->
-  <link rel="manifest" href="./manifest.json" />
-  <meta name="theme-color" content="#2d89ef" />
+  <style>
+    :root{
+      --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
+      --accent:#3aa3ff; --border:#232836;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="./styles.css" />
+    /* Header */
+    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;
+      justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
+      backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
+    .app-title{font-weight:700;letter-spacing:.2px}
+    .badges{display:flex;gap:8px}
+    .chip{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;}
+    #net-status.online{color:#5ee17d} #net-status.offline{color:#ff8b8b}
+    #sw-badge.ok{color:#5ee17d} #sw-badge.miss{color:#ffcf66}
+
+    /* Main */
+    #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
+    .tab-pane{display:none}
+    .tab-pane.active{display:block}
+    .tab-pane::before{content:attr(aria-label);display:inline-block;font-weight:700;color:var(--muted);
+      margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;}
+    .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);}
+
+    /* Bottom Tabbar */
+    .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);
+      gap:0;padding:8px;border-top:1px solid var(--border);
+      background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);}
+    .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px}
+    .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14);}
+
+    /* More dialog */
+    dialog.more-sheet{border:none;padding:0;background:transparent}
+    .sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);
+      border-top-left-radius:18px;border-top-right-radius:18px;border:1px solid var(--border);
+      padding:12px;margin:0 6px 6px;animation:slideUp .18s ease-out;}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:.6}to{transform:translateY(0);opacity:1}}
+    .more-title{font-weight:700;padding:6px 4px 10px 4px;}
+    .more-item,.more-close,.more-update{width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
+      border:1px solid var(--border);border-radius:10px;padding:12px}
+    .more-close{text-align:center;background:#182034}
+    .more-update{border-style:dashed}
+    .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35)}
+  </style>
 </head>
 <body>
-  <header class="header">
-    <h1 class="brand">QuoteAutoMate</h1>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="app-title">Quote AutoMate</div>
     <div class="badges">
-      <span id="net" class="pill">…</span>
-      <span id="sw" class="pill">SW: …</span>
+      <div id="sw-badge" class="chip">SW: …</div>
+      <div id="net-status" class="chip">Online</div>
     </div>
   </header>
 
-  <main class="container">
-    <!-- Tabs (bottom bar controls which section is visible) -->
-    <section id="tab-quotes" class="tab active" aria-label="Quotes">
-      <h2>Quotes</h2>
-      <p class="hint">Skeleton ready. (We’ll build features tab-by-tab.)</p>
-    </section>
+  <!-- Main content -->
+  <main id="tab-content">
+    <!-- Primary Tabs (order you requested) -->
+    <section id="tab-quotes" class="tab-pane" role="region" aria-label="Quotes"></section>
+    <section id="tab-history" class="tab-pane" role="region" aria-label="History"></section>
+    <section id="tab-customers" class="tab-pane" role="region" aria-label="Customers"></section>
+    <section id="tab-presets" class="tab-pane" role="region" aria-label="Presets"></section>
+    <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
 
-    <section id="tab-history" class="tab" aria-label="History">
-      <h2>History</h2>
-      <p class="hint">Past quotes will list here.</p>
-    </section>
-
-    <section id="tab-customers" class="tab" aria-label="Customers">
-      <h2>Customers</h2>
-      <p class="hint">Customer list & quick search.</p>
-    </section>
-
-    <section id="tab-presets" class="tab" aria-label="Presets">
-      <h2>Presets</h2>
-      <p class="hint">Saved services & parts bundles.</p>
-    </section>
-
-    <section id="tab-analytics" class="tab" aria-label="Analytics">
-      <h2>Analytics</h2>
-      <p class="hint">KPIs & date range reports.</p>
-    </section>
-
-    <!-- Secondary (via More) -->
-    <section id="tab-settings" class="tab" aria-label="Settings">
-      <h2>Settings</h2>
-      <p class="hint">Language, currency, role (lite/pro).</p>
-    </section>
-
-    <section id="tab-business" class="tab" aria-label="Business Info">
-      <h2>Business Info</h2>
-      <p class="hint">Name, logo, contact, defaults.</p>
-    </section>
-
-    <section id="tab-resources" class="tab" aria-label="Resources">
-      <h2>Resources</h2>
-      <p class="hint">Employees, sublets, suppliers.</p>
-    </section>
+    <!-- Secondary Tabs (via More) -->
+    <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
+    <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
+    <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
   </main>
 
-  <!-- Bottom tab bar -->
+  <!-- Bottom Tab Bar -->
   <nav class="tabbar" aria-label="Bottom Tabs">
-    <button class="tab-btn active" data-tab="quotes">Quotes</button>
-    <button class="tab-btn" data-tab="history">History</button>
-    <button class="tab-btn" data-tab="customers">Customers</button>
-    <button class="tab-btn" data-tab="presets">Presets</button>
-    <button class="tab-btn" data-tab="analytics">Analytics</button>
-    <button class="tab-btn" data-tab="more">More</button>
+    <button class="tab-btn" data-tab="quotes" aria-label="Quotes">Quotes</button>
+    <button class="tab-btn" data-tab="history" aria-label="History">History</button>
+    <button class="tab-btn" data-tab="customers" aria-label="Customers">Customers</button>
+    <button class="tab-btn" data-tab="presets" aria-label="Presets">Presets</button>
+    <button class="tab-btn" data-tab="analytics" aria-label="Analytics">Analytics</button>
+    <button class="tab-btn" data-tab="more" aria-label="More">More</button>
   </nav>
 
-  <!-- More (native dialog = most reliable) -->
-  <dialog id="more-dialog" class="sheet">
-    <div class="sheet-head">
-      <strong>More</strong>
-      <button id="close-more" class="icon-btn" aria-label="Close">✕</button>
-    </div>
-    <div class="sheet-body">
-      <button class="sheet-item" data-tab="settings">Settings</button>
-      <button class="sheet-item" data-tab="business">Business Info</button>
-      <button class="sheet-item" data-tab="resources">Resources</button>
-      <hr/>
-      <button id="force-update" class="sheet-item outline">Force Update (clear cache & reload)</button>
+  <!-- More (native dialog) -->
+  <dialog id="moreDialog" class="more-sheet">
+    <div class="backdrop" data-close></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="more-title">
+      <div id="more-title" class="more-title">More</div>
+      <button class="more-item" data-tab="settings">Settings</button>
+      <button class="more-item" data-tab="business">Business Info</button>
+      <button class="more-item" data-tab="resources">Resources</button>
+      <button class="more-update" id="force-update">Force Update (clear cache & reload)</button>
+      <button class="more-close" data-close>Close</button>
     </div>
   </dialog>
 
-  <script src="./app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
