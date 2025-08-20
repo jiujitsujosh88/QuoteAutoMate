@@ -4,14 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Quote AutoMate – Skeleton</title>
-  <!-- Manifest can stay; icon paths unchanged -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f1115"/>
 
   <style>
     :root{
       --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
-      --accent:#3aa3ff; --accent-2:#2dd4bf; --bar:#0b0d12; --border:#232836;
+      --accent:#3aa3ff; --border:#232836;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -54,9 +53,6 @@
       border:1px solid var(--border);border-radius:10px;padding:12px}
     .more-close{text-align:center;background:#182034}
     .more-update{border-style:dashed}
-
-    /* Small helper text style (hidden now) */
-    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
   </style>
 </head>
 <body>
@@ -72,19 +68,21 @@
     <section id="tab-quotes" class="tab-pane" role="region" aria-label="Quotes"></section>
     <section id="tab-presets" class="tab-pane" role="region" aria-label="Presets"></section>
     <section id="tab-customers" class="tab-pane" role="region" aria-label="Customers"></section>
-    <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
-    <!-- Secondary Tabs -->
+    <section id="tab-history" class="tab-pane" role="region" aria-label="History"></section>
+
+    <!-- Secondary Tabs (via More) -->
+    <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics" hidden></section>
     <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
     <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
     <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
   </main>
 
-  <!-- Bottom Tab Bar -->
+  <!-- Bottom Tab Bar (5 slots: we moved Analytics into More) -->
   <nav class="tabbar" aria-label="Bottom Tabs">
     <button class="tab-btn" data-tab="quotes" aria-label="Quotes">Quotes</button>
     <button class="tab-btn" data-tab="presets" aria-label="Presets">Presets</button>
     <button class="tab-btn" data-tab="customers" aria-label="Customers">Customers</button>
-    <button class="tab-btn" data-tab="analytics" aria-label="Analytics">Analytics</button>
+    <button class="tab-btn" data-tab="history" aria-label="History">History</button>
     <button class="tab-btn" data-tab="more" aria-label="More">More</button>
   </nav>
 
@@ -92,6 +90,7 @@
   <div id="more-panel" class="more-panel" hidden aria-hidden="true" style="display:none">
     <div class="more-sheet">
       <div class="more-title">More</div>
+      <button class="more-item" data-tab="analytics">Analytics</button>
       <button class="more-item" data-tab="settings">Settings</button>
       <button class="more-item" data-tab="business">Business Info</button>
       <button class="more-item" data-tab="resources">Resources</button>
@@ -103,7 +102,8 @@
 
   <script>
   (function(){
-    const State = { activeTab: 'quotes', version: 'single-file-1' };
+    // Single-file skeleton controller
+    const State = { activeTab: 'quotes' };
 
     // Helpers
     const $ = (sel, root=document) => root.querySelector(sel);
@@ -132,7 +132,7 @@
       if (pane){ pane.hidden = false; pane.classList.add('active'); }
       // update bar
       $all('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
-      // close more
+      // close more AFTER switching
       hideMore();
       State.activeTab = tab;
       try { localStorage.setItem('lastTab', tab); } catch(_) {}
@@ -157,7 +157,7 @@
           showTab(t);
         }, {passive:true});
       });
-      // more items
+      // more items (explicit listeners)
       $all('.more-item').forEach(item=>{
         item.addEventListener('click', e=>{
           e.preventDefault(); e.stopPropagation();
@@ -179,6 +179,7 @@
         quotes:'Start your quote flow here.',
         presets:'Your saved presets will appear here.',
         customers:'Customer list & quick search.',
+        history:'Recent quotes. (Later: quick-add from prior tickets.)',
         analytics:'KPIs & date-range reports.',
         settings:'Language, currency, role.',
         business:'Business name, logo, contact, financial defaults.',
@@ -202,14 +203,11 @@
           await Promise.all(keys.map(k => caches.delete(k)));
         }
         if (navigator.serviceWorker?.controller) {
-          // Ask SW to skip waiting (if any)
           navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});
         }
       } catch(e){}
       location.reload();
     }
-
-    // Register Force Update button
     function initForceUpdate(){
       $('#force-update')?.addEventListener('click', forceUpdate);
     }
