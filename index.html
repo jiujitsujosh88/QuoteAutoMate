@@ -4,25 +4,76 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Quote AutoMate – Skeleton</title>
-  <link rel="manifest" href="manifest.json?v=3">
-  <link rel="stylesheet" href="styles.css?v=4">
+  <!-- Manifest can stay; icon paths unchanged -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1115"/>
+
+  <style>
+    :root{
+      --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
+      --accent:#3aa3ff; --accent-2:#2dd4bf; --bar:#0b0d12; --border:#232836;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
+
+    /* Header */
+    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;
+      justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
+      backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
+    .app-title{font-weight:700;letter-spacing:.2px}
+    .net{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;}
+    .net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
+
+    /* Main */
+    #tab-content{padding:16px;padding-bottom:88px;min-height:calc(100dvh - 120px);}
+    .tab-pane{display:none}
+    .tab-pane.active{display:block}
+    .tab-pane::before{content:attr(aria-label);display:inline-block;font-weight:700;color:var(--muted);
+      margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;}
+    .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);}
+
+    /* Tabbar */
+    .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);
+      gap:0;padding:8px;border-top:1px solid var(--border);
+      background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);}
+    .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px}
+    .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14);}
+
+    /* More sheet */
+    .more-panel[hidden]{display:none}
+    .more-panel{position:fixed;inset:0;z-index:40}
+    .more-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+    .more-sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);
+      border-top-left-radius:18px;border-top-right-radius:18px;border:1px solid var(--border);
+      padding:12px;animation:slideUp .18s ease-out;}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:.6}to{transform:translateY(0);opacity:1}}
+    .more-title{font-weight:700;padding:6px 4px 10px 4px;}
+    .more-item,.more-close,.more-update{width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
+      border:1px solid var(--border);border-radius:10px;padding:12px}
+    .more-close{text-align:center;background:#182034}
+    .more-update{border-style:dashed}
+
+    /* Small helper text style (hidden now) */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+  </style>
 </head>
 <body>
   <!-- Header -->
   <header class="app-header">
     <div class="app-title">Quote AutoMate</div>
-    <div id="net-status" class="net online">Online</div>
+    <div id="net-status" class="net">Online</div>
   </header>
 
-  <!-- Main content area -->
+  <!-- Main content -->
   <main id="tab-content">
     <!-- Primary Tabs -->
     <section id="tab-quotes" class="tab-pane" role="region" aria-label="Quotes"></section>
     <section id="tab-presets" class="tab-pane" role="region" aria-label="Presets"></section>
     <section id="tab-customers" class="tab-pane" role="region" aria-label="Customers"></section>
     <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
-
-    <!-- Secondary Tabs (via More) -->
+    <!-- Secondary Tabs -->
     <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
     <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
     <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
@@ -30,27 +81,147 @@
 
   <!-- Bottom Tab Bar -->
   <nav class="tabbar" aria-label="Bottom Tabs">
-    <!-- Inline handlers as hard fallbacks (work even if listeners fail) -->
-    <button class="tab-btn" data-tab="quotes" aria-label="Quotes" onclick="window.showTab && window.showTab('quotes')">Quotes</button>
-    <button class="tab-btn" data-tab="presets" aria-label="Presets" onclick="window.showTab && window.showTab('presets')">Presets</button>
-    <button class="tab-btn" data-tab="customers" aria-label="Customers" onclick="window.showTab && window.showTab('customers')">Customers</button>
-    <button class="tab-btn" data-tab="analytics" aria-label="Analytics" onclick="window.showTab && window.showTab('analytics')">Analytics</button>
-    <button class="tab-btn" data-tab="more" aria-label="More" onclick="window.openMore && window.openMore()">More</button>
+    <button class="tab-btn" data-tab="quotes" aria-label="Quotes">Quotes</button>
+    <button class="tab-btn" data-tab="presets" aria-label="Presets">Presets</button>
+    <button class="tab-btn" data-tab="customers" aria-label="Customers">Customers</button>
+    <button class="tab-btn" data-tab="analytics" aria-label="Analytics">Analytics</button>
+    <button class="tab-btn" data-tab="more" aria-label="More">More</button>
   </nav>
 
-  <!-- More panel (bottom sheet) -->
-  <div id="more-panel" class="more-panel" hidden>
+  <!-- More panel -->
+  <div id="more-panel" class="more-panel" hidden aria-hidden="true" style="display:none">
     <div class="more-sheet">
       <div class="more-title">More</div>
-      <button class="more-item" data-tab="settings" onclick="window.showTab && window.showTab('settings')">Settings</button>
-      <button class="more-item" data-tab="business" onclick="window.showTab && window.showTab('business')">Business Info</button>
-      <button class="more-item" data-tab="resources" onclick="window.showTab && window.showTab('resources')">Resources</button>
-      <button id="more-close" class="more-close" onclick="window.hideMore && window.hideMore()">Close</button>
+      <button class="more-item" data-tab="settings">Settings</button>
+      <button class="more-item" data-tab="business">Business Info</button>
+      <button class="more-item" data-tab="resources">Resources</button>
+      <button class="more-update" id="force-update">Force Update (clear cache & reload)</button>
+      <button id="more-close" class="more-close">Close</button>
     </div>
-    <div class="more-backdrop" id="more-backdrop" onclick="window.hideMore && window.hideMore()"></div>
+    <div class="more-backdrop" id="more-backdrop"></div>
   </div>
 
-  <!-- Load JS last; add cache-bust query -->
-  <script src="app.js?v=6"></script>
+  <script>
+  (function(){
+    const State = { activeTab: 'quotes', version: 'single-file-1' };
+
+    // Helpers
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $all = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+    // Network badge
+    function setOnlineStatus(){
+      const el = $('#net-status'); if(!el) return;
+      const online = navigator.onLine;
+      el.textContent = online ? 'Online' : 'Offline';
+      el.classList.toggle('online', online);
+      el.classList.toggle('offline', !online);
+    }
+    function initNet(){
+      setOnlineStatus();
+      addEventListener('online', setOnlineStatus);
+      addEventListener('offline', setOnlineStatus);
+    }
+
+    // Tabs
+    function showTab(tab){
+      // hide all
+      $all('.tab-pane').forEach(p => { p.classList.remove('active'); p.hidden = true; });
+      // show selected
+      const pane = $('#tab-' + tab);
+      if (pane){ pane.hidden = false; pane.classList.add('active'); }
+      // update bar
+      $all('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+      // close more
+      hideMore();
+      State.activeTab = tab;
+      try { localStorage.setItem('lastTab', tab); } catch(_) {}
+    }
+
+    // More sheet
+    function openMore(){
+      const p = $('#more-panel'); if(!p) return;
+      p.hidden = false; p.style.display = 'block'; p.setAttribute('aria-hidden','false');
+    }
+    function hideMore(){
+      const p = $('#more-panel'); if(!p) return;
+      p.hidden = true; p.style.display = 'none'; p.setAttribute('aria-hidden','true');
+    }
+
+    function initTabs(){
+      // bottom tabs
+      $all('.tab-btn').forEach(btn=>{
+        btn.addEventListener('click', e=>{
+          const t = btn.dataset.tab;
+          if (t === 'more') { openMore(); return; }
+          showTab(t);
+        }, {passive:true});
+      });
+      // more items
+      $all('.more-item').forEach(item=>{
+        item.addEventListener('click', e=>{
+          e.preventDefault(); e.stopPropagation();
+          const t = item.dataset.tab; if (t) showTab(t);
+        }, {passive:false});
+      });
+      $('#more-close')?.addEventListener('click', e=>{ e.preventDefault(); hideMore(); });
+      $('#more-backdrop')?.addEventListener('click', hideMore);
+
+      // restore last tab
+      let last = 'quotes';
+      try { const saved = localStorage.getItem('lastTab'); if (saved) last = saved; } catch(_) {}
+      showTab(last);
+    }
+
+    // Placeholders
+    function mountPlaceholders(){
+      const fillers = {
+        quotes:'Start your quote flow here.',
+        presets:'Your saved presets will appear here.',
+        customers:'Customer list & quick search.',
+        analytics:'KPIs & date-range reports.',
+        settings:'Language, currency, role.',
+        business:'Business name, logo, contact, financial defaults.',
+        resources:'Employees, sublets, suppliers.'
+      };
+      Object.entries(fillers).forEach(([k,t])=>{
+        const el = $('#tab-'+k);
+        if (el && !el.dataset.mounted){
+          const block = document.createElement('div');
+          block.className = 'placeholder'; block.textContent = t;
+          el.appendChild(block); el.dataset.mounted='1';
+        }
+      });
+    }
+
+    // Force update (clear caches + reload)
+    async function forceUpdate(){
+      try {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        if (navigator.serviceWorker?.controller) {
+          // Ask SW to skip waiting (if any)
+          navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});
+        }
+      } catch(e){}
+      location.reload();
+    }
+
+    // Register Force Update button
+    function initForceUpdate(){
+      $('#force-update')?.addEventListener('click', forceUpdate);
+    }
+
+    // Boot
+    document.addEventListener('DOMContentLoaded', ()=>{
+      initNet();
+      initTabs();
+      mountPlaceholders();
+      initForceUpdate();
+    });
+  })();
+  </script>
 </body>
 </html>
