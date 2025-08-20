@@ -21,9 +21,13 @@
     .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;
       justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
       backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
+    .title-wrap{display:flex;align-items:center;gap:10px}
     .app-title{font-weight:700;letter-spacing:.2px}
-    .net{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;}
+    .badges{display:flex;gap:8px;align-items:center}
+    .badge{font-size:.72rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;color:var(--muted)}
     .net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
+    .sw.ok{color:#5ee17d}.sw.miss{color:#ffcf66}
+    .btn-mini{font-size:.72rem;padding:4px 8px;border-radius:8px;border:1px solid var(--border);background:#182034;color:var(--text);cursor:pointer}
 
     /* Main */
     #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
@@ -33,7 +37,7 @@
       margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;}
     .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);}
 
-    /* Bottom Tabbar (6 buttons incl. More) */
+    /* Bottom Tabbar (5 buttons + More) */
     .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);
       gap:0;padding:8px;border-top:1px solid var(--border);
       background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);}
@@ -59,8 +63,14 @@
 <body>
   <!-- Header -->
   <header class="app-header">
-    <div class="app-title">Quote AutoMate</div>
-    <div id="net-status" class="net">Online</div>
+    <div class="title-wrap">
+      <div class="app-title">Quote AutoMate</div>
+    </div>
+    <div class="badges">
+      <div id="sw-status" class="badge sw">SW: …</div>
+      <div id="net-status" class="badge net">Online</div>
+      <button id="force-update-top" class="btn-mini" title="Clear cache & reload">Update</button>
+    </div>
   </header>
 
   <!-- Main content -->
@@ -120,6 +130,22 @@
       setOnlineStatus();
       addEventListener('online', setOnlineStatus);
       addEventListener('offline', setOnlineStatus);
+    }
+
+    // SW badge
+    function setSWStatus(text, ok){
+      const el = $('#sw-status'); if(!el) return;
+      el.textContent = 'SW: ' + text;
+      el.classList.remove('ok','miss');
+      el.classList.add(ok ? 'ok' : 'miss');
+    }
+    function initSWBadge(){
+      if (navigator.serviceWorker && navigator.serviceWorker.controller){
+        setSWStatus('registered', true);
+      } else {
+        setSWStatus('not registered', false);
+      }
+      navigator.serviceWorker?.addEventListener('controllerchange', ()=> setSWStatus('registered', true));
     }
 
     // Tabs
@@ -201,6 +227,7 @@
     }
     function initForceUpdate(){
       $('#force-update')?.addEventListener('click', forceUpdate);
+      $('#force-update-top')?.addEventListener('click', forceUpdate);
     }
 
     // Install prompt
@@ -216,13 +243,14 @@
         State.deferredPrompt.prompt();
         const choice = await State.deferredPrompt.userChoice;
         State.deferredPrompt = null;
-        $('#install-btn').hidden = true;
+        const b = $('#install-btn'); if (b) b.hidden = true;
       });
     }
 
     // Boot
     document.addEventListener('DOMContentLoaded', ()=>{
       initNet();
+      initSWBadge();
       initTabs();
       mountPlaceholders();
       initForceUpdate();
