@@ -1,43 +1,54 @@
-/* Quote AutoMate – PWA Service Worker */
-const CACHE_NAME = "qam-shell-v4";
-const PRECACHE = ["./","./index.html","./manifest.json","./icons/icon-192.png","./icons/icon-512.png"];
+// Quote AutoMate - service-worker.js
+const CACHE_NAME = "qam-cache-v1";
+const OFFLINE_URL = "/";
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((c)=>c.addAll(PRECACHE)));
+const CORE_ASSETS = [
+  "/",
+  "/index.html",
+  "/app.js",
+  "/manifest.json",
+  "/icon-192.png",
+  "/icon-512.png"
+];
+
+// Install SW & cache core assets
+self.addEventListener("install", (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
+  );
   self.skipWaiting();
 });
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil((async ()=>{
-    const keys = await caches.keys();
-    await Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)));
-    await self.clients.claim();
-  })());
+// Activate SW & clean old caches
+self.addEventListener("activate", (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)))
+    )
+  );
+  self.clients.claim();
 });
 
-self.addEventListener("message",(event)=>{
-  if(event.data && event.data.type==="SKIP_WAITING"){ self.skipWaiting(); }
-});
-
-self.addEventListener("fetch",(event)=>{
-  const req = event.request;
-  if(req.method!=="GET") return;
-  const url = new URL(req.url);
-  if(url.origin !== self.location.origin) return;
-
-  event.respondWith(
-    caches.match(req).then(cached=>{
-      if(cached) return cached;
-      return fetch(req).then(resp=>{
-        const copy = resp.clone();
-        caches.open(CACHE_NAME).then(c=>c.put(req,copy));
-        return resp;
-      }).catch(()=>{
-        if(req.mode==="navigate" || req.destination==="document"){
-          return caches.match("./index.html");
-        }
-        return new Response("",{status:503,statusText:"Offline"});
-      });
+// Fetch handler
+self.addEventListener("fetch", (e) => {
+  if (e.request.method !== "GET") return;
+  e.respondWith(
+    caches.match(e.request).then((cached) => {
+      return (
+        cached ||
+        fetch(e.request).catch(() => {
+          if (e.request.mode === "navigate") {
+            return caches.match(OFFLINE_URL);
+          }
+        })
+      );
     })
   );
+});
+
+// Handle skip waiting (manual update trigger)
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
