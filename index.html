@@ -6,21 +6,24 @@
   <title>Quote AutoMate – Skeleton</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f1115"/>
+
   <style>
-    :root{ --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9; --accent:#3aa3ff; --border:#232836; }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
+    :root{
+      --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
+      --accent:#3aa3ff; --border:#232836;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
 
     /* Header */
-    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
-      padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
+    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;
+      justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
       backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
-    .app-title{font-weight:700;letter-spacing:.2px;user-select:none;cursor:default}
-    .header-right{display:flex;gap:8px;align-items:center}
-    .chip{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;}
+    .app-title{font-weight:700;letter-spacing:.2px}
+    .net{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;}
     .net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
-    .install-btn{display:none;font-size:.78rem;padding:4px 10px;border-radius:10px;border:1px solid var(--border);
-      background:#182034;color:var(--text)}
 
     /* Main */
     #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
@@ -30,33 +33,34 @@
       margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;}
     .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);}
 
-    /* Bottom Tabbar (5 + More) */
+    /* Bottom Tabbar (6 buttons incl. More) */
     .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);
       gap:0;padding:8px;border-top:1px solid var(--border);
       background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);}
     .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px}
     .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14);}
 
-    /* <dialog> More */
-    dialog.more-dialog{width:min(560px,92vw);border:1px solid var(--border);border-radius:18px;background:var(--card);color:var(--text)}
-    dialog.more-dialog::backdrop{background:rgba(0,0,0,.35)}
-    .more-wrap{padding:12px}
+    /* More sheet */
+    .more-panel[hidden]{display:none}
+    .more-panel{position:fixed;inset:0;z-index:40}
+    .more-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.35)}
+    .more-sheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);
+      border-top-left-radius:18px;border-top-right-radius:18px;border:1px solid var(--border);
+      padding:12px;animation:slideUp .18s ease-out;}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:.6}to{transform:translateY(0);opacity:1}}
     .more-title{font-weight:700;padding:6px 4px 10px 4px;}
-    .more-item,.more-close,.more-update{width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
+    .more-item,.more-close,.more-update,.install-btn{width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
       border:1px solid var(--border);border-radius:10px;padding:12px}
     .more-close{text-align:center;background:#182034}
     .more-update{border-style:dashed}
+    .install-btn{background:#1a2a48;border-color:#3aa3ff;color:#3aa3ff;font-weight:700}
   </style>
 </head>
 <body>
   <!-- Header -->
   <header class="app-header">
-    <div id="app-title" class="app-title" title="Long-press to Force Update">Quote AutoMate</div>
-    <div class="header-right">
-      <span id="sw-status" class="chip">SW: —</span>
-      <button id="installBtn" class="install-btn" type="button">Install App</button>
-      <span id="net-status" class="chip net">Online</span>
-    </div>
+    <div class="app-title">Quote AutoMate</div>
+    <div id="net-status" class="net">Online</div>
   </header>
 
   <!-- Main content -->
@@ -68,7 +72,7 @@
     <section id="tab-presets" class="tab-pane" role="region" aria-label="Presets"></section>
     <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
 
-    <!-- Secondary Tabs (More) -->
+    <!-- Secondary Tabs -->
     <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
     <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
     <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
@@ -81,55 +85,30 @@
     <button class="tab-btn" data-tab="customers" aria-label="Customers">Customers</button>
     <button class="tab-btn" data-tab="presets" aria-label="Presets">Presets</button>
     <button class="tab-btn" data-tab="analytics" aria-label="Analytics">Analytics</button>
-    <button class="tab-btn" id="btn-more" data-tab="more" aria-label="More">More</button>
+    <button class="tab-btn" data-tab="more" aria-label="More">More</button>
   </nav>
 
-  <!-- Native dialog (More) -->
-  <dialog id="moreDialog" class="more-dialog" aria-labelledby="moreTitle" inert>
-    <div class="more-wrap">
-      <div id="moreTitle" class="more-title">More</div>
+  <!-- More panel -->
+  <div id="more-panel" class="more-panel" hidden aria-hidden="true" style="display:none">
+    <div class="more-sheet" role="dialog" aria-modal="true" aria-labelledby="more-title">
+      <div id="more-title" class="more-title">More</div>
       <button class="more-item" data-tab="settings">Settings</button>
       <button class="more-item" data-tab="business">Business Info</button>
       <button class="more-item" data-tab="resources">Resources</button>
+      <button class="install-btn" id="install-btn" hidden>Install App</button>
       <button class="more-update" id="force-update">Force Update (clear cache & reload)</button>
       <button id="more-close" class="more-close">Close</button>
     </div>
-  </dialog>
+    <div class="more-backdrop" id="more-backdrop" tabindex="-1" aria-hidden="true"></div>
+  </div>
 
   <script>
   (function(){
-    const State = { activeTab: 'quotes', deferredPrompt: null };
+    const State = { activeTab: 'quotes', deferredPrompt:null };
     const $ = (sel, root=document) => root.querySelector(sel);
     const $all = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-    // ---------- Force Update ----------
-    async function forceUpdate(){
-      try {
-        if ('caches' in window) {
-          const keys = await caches.keys();
-          await Promise.all(keys.map((k) => caches.delete(k)));
-        }
-        if (navigator.serviceWorker?.controller) {
-          navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});
-        }
-      } catch(e){}
-      location.reload();
-    }
-    function checkResetFlag(){
-      const url = new URL(location.href);
-      if (url.searchParams.get('reset') === '1') forceUpdate();
-    }
-    function initEasterReset(){
-      const title = $('#app-title'); if (!title) return;
-      let t=null;
-      const start=()=>{ t=setTimeout(()=>forceUpdate(),600); };
-      const clear=()=>{ if(t){clearTimeout(t);t=null;} };
-      title.addEventListener('mousedown', start);
-      title.addEventListener('touchstart', start, {passive:true});
-      ['mouseup','mouseleave','touchend','touchcancel'].forEach(ev=>title.addEventListener(ev, clear, {passive:true}));
-    }
-
-    // ---------- Network badge ----------
+    // Network badge
     function setOnlineStatus(){
       const el = $('#net-status'); if(!el) return;
       const online = navigator.onLine;
@@ -143,47 +122,49 @@
       addEventListener('offline', setOnlineStatus);
     }
 
-    // ---------- Tabs ----------
+    // Tabs
     function showTab(tab){
       $all('.tab-pane').forEach(p => { p.classList.remove('active'); p.hidden = true; });
       const pane = $('#tab-' + tab);
       if (pane){ pane.hidden = false; pane.classList.add('active'); }
       $all('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
-      closeMore();
+      hideMore();
       State.activeTab = tab;
       try { localStorage.setItem('lastTab', tab); } catch(_) {}
     }
 
-    // ---------- More (dialog) ----------
-    const dlg = $('#moreDialog');
-    function supportsDialog(){ return typeof HTMLDialogElement !== 'undefined' && 'showModal' in dlg; }
-
+    // More sheet
     function openMore(){
-      if (supportsDialog()){
-        dlg.removeAttribute('inert'); dlg.showModal();
-      } else { alert('Settings • Business Info • Resources'); }
+      const p = $('#more-panel'); if(!p) return;
+      p.hidden = false; p.style.display = 'block'; p.setAttribute('aria-hidden','false');
     }
-    function closeMore(){
-      if (supportsDialog() && dlg.open){
-        dlg.close(); dlg.setAttribute('inert','');
-      }
+    function hideMore(){
+      const p = $('#more-panel'); if(!p) return;
+      p.hidden = true; p.style.display = 'none'; p.setAttribute('aria-hidden','true');
     }
-    function wireMore(){
-      $('#btn-more')?.addEventListener('click', (e)=>{ e.preventDefault(); openMore(); }, {passive:false});
-      $('#more-close')?.addEventListener('click', (e)=>{ e.preventDefault(); closeMore(); });
-      dlg?.addEventListener('click', (e)=>{
-        const box = e.target.closest('.more-wrap'); if (!box) closeMore();
+
+    function initTabs(){
+      $all('.tab-btn').forEach(btn=>{
+        btn.addEventListener('click', () => {
+          const t = btn.dataset.tab;
+          if (t === 'more'){ openMore(); return; }
+          showTab(t);
+        }, {passive:true});
       });
-      $all('.more-item', dlg).forEach(item=>{
-        item.addEventListener('click',(e)=>{
+      $all('.more-item').forEach(item=>{
+        item.addEventListener('click', (e)=>{
           e.preventDefault(); e.stopPropagation();
-          const t=item.dataset.tab; if (t) showTab(t);
+          const t = item.dataset.tab; if (t) showTab(t);
         }, {passive:false});
       });
-      $('#force-update')?.addEventListener('click', forceUpdate);
+      $('#more-close')?.addEventListener('click', (e)=>{ e.preventDefault(); hideMore(); });
+      $('#more-backdrop')?.addEventListener('click', hideMore);
+      let last = 'quotes';
+      try { const saved = localStorage.getItem('lastTab'); if (saved) last = saved; } catch(_) {}
+      showTab(last);
     }
 
-    // ---------- Placeholders ----------
+    // Placeholders
     function mountPlaceholders(){
       const fillers = {
         quotes:'Start your quote flow here.',
@@ -205,79 +186,47 @@
       });
     }
 
-    // ---------- Install flow (Android/Chrome) ----------
+    // Force update
+    async function forceUpdate(){
+      try {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        if (navigator.serviceWorker?.controller) {
+          navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'});
+        }
+      } catch(e){}
+      location.reload();
+    }
+    function initForceUpdate(){
+      $('#force-update')?.addEventListener('click', forceUpdate);
+    }
+
+    // Install prompt
     function initInstall(){
-      const btn = $('#installBtn');
-      const hide = ()=>{ if (btn) btn.style.display='none'; };
-      const show = ()=>{ if (btn) btn.style.display='inline-block'; };
-
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-        || window.navigator.standalone === true;
-      if (isStandalone) hide();
-
-      window.addEventListener('appinstalled', hide);
-
       window.addEventListener('beforeinstallprompt', (e)=>{
         e.preventDefault();
         State.deferredPrompt = e;
-        show();
+        const btn = $('#install-btn');
+        if (btn){ btn.hidden = false; }
       });
-
-      btn?.addEventListener('click', async ()=>{
-        const prompt = State.deferredPrompt;
-        if (!prompt) return;
-        prompt.prompt();
-        try { await prompt.userChoice; } finally {
-          State.deferredPrompt = null; hide();
-        }
-      });
-    }
-
-    // ---------- SW register + status ----------
-    function updateSWBadge(text){
-      const el = $('#sw-status'); if (el) el.textContent = `SW: ${text}`;
-    }
-    function registerSW(){
-      if (!('serviceWorker' in navigator)) { updateSWBadge('n/a'); return; }
-      window.addEventListener('load', ()=>{
-        navigator.serviceWorker.register('./service-worker.js', { scope: './' })
-          .then(reg=>{
-            updateSWBadge('registered');
-            if (navigator.serviceWorker.controller){
-              updateSWBadge('controlled');
-            }
-            navigator.serviceWorker.ready.then(()=>updateSWBadge('ready'));
-          })
-          .catch(err=>{ updateSWBadge('error'); console.warn('SW register failed:', err); });
-
-        navigator.serviceWorker.addEventListener('controllerchange', ()=>{
-          updateSWBadge('controlled');
-        });
+      $('#install-btn')?.addEventListener('click', async ()=>{
+        if (!State.deferredPrompt) return;
+        State.deferredPrompt.prompt();
+        const choice = await State.deferredPrompt.userChoice;
+        State.deferredPrompt = null;
+        $('#install-btn').hidden = true;
       });
     }
 
-    // ---------- Boot ----------
+    // Boot
     document.addEventListener('DOMContentLoaded', ()=>{
-      checkResetFlag();
-      initEasterReset();
       initNet();
-
-      $all('.tab-btn').forEach(btn=>{
-        btn.addEventListener('click', (e) => {
-          const t = btn.dataset.tab;
-          if (t === 'more'){ openMore(); return; }
-          showTab(t);
-        }, {passive:true});
-      });
-
-      wireMore();
+      initTabs();
       mountPlaceholders();
+      initForceUpdate();
       initInstall();
-      registerSW();
-
-      let last = 'quotes';
-      try { const saved = localStorage.getItem('lastTab'); if (saved) last = saved; } catch(_) {}
-      showTab(last);
     });
   })();
   </script>
