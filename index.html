@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Quote AutoMate – Skeleton</title>
-  <link rel="manifest" href="manifest.json?v=2">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="manifest" href="manifest.json?v=3">
+  <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
   <!-- Header -->
@@ -14,7 +14,7 @@
     <div id="net-status" class="net online">Online</div>
   </header>
 
-  <!-- Main content area: one tab visible at a time -->
+  <!-- Main content area -->
   <main id="tab-content">
     <!-- Primary Tabs -->
     <section id="tab-quotes" class="tab-pane" role="region" aria-label="Quotes"></section>
@@ -22,7 +22,7 @@
     <section id="tab-customers" class="tab-pane" role="region" aria-label="Customers"></section>
     <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
 
-    <!-- Secondary Tabs (accessed via More) -->
+    <!-- Secondary Tabs (via More) -->
     <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
     <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
     <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
@@ -30,25 +30,27 @@
 
   <!-- Bottom Tab Bar -->
   <nav class="tabbar" aria-label="Bottom Tabs">
-    <button class="tab-btn" data-tab="quotes" aria-label="Quotes">Quotes</button>
-    <button class="tab-btn" data-tab="presets" aria-label="Presets">Presets</button>
-    <button class="tab-btn" data-tab="customers" aria-label="Customers">Customers</button>
-    <button class="tab-btn" data-tab="analytics" aria-label="Analytics">Analytics</button>
-    <button class="tab-btn" data-tab="more" aria-label="More">More</button>
+    <!-- Inline handlers as hard fallbacks (work even if listeners fail) -->
+    <button class="tab-btn" data-tab="quotes" aria-label="Quotes" onclick="window.showTab && window.showTab('quotes')">Quotes</button>
+    <button class="tab-btn" data-tab="presets" aria-label="Presets" onclick="window.showTab && window.showTab('presets')">Presets</button>
+    <button class="tab-btn" data-tab="customers" aria-label="Customers" onclick="window.showTab && window.showTab('customers')">Customers</button>
+    <button class="tab-btn" data-tab="analytics" aria-label="Analytics" onclick="window.showTab && window.showTab('analytics')">Analytics</button>
+    <button class="tab-btn" data-tab="more" aria-label="More" onclick="window.openMore && window.openMore()">More</button>
   </nav>
 
-  <!-- More panel (popover sheet) -->
+  <!-- More panel (bottom sheet) -->
   <div id="more-panel" class="more-panel" hidden>
     <div class="more-sheet">
       <div class="more-title">More</div>
-      <button class="more-item" data-tab="settings">Settings</button>
-      <button class="more-item" data-tab="business">Business Info</button>
-      <button class="more-item" data-tab="resources">Resources</button>
-      <button id="more-close" class="more-close">Close</button>
+      <button class="more-item" data-tab="settings" onclick="window.showTab && window.showTab('settings')">Settings</button>
+      <button class="more-item" data-tab="business" onclick="window.showTab && window.showTab('business')">Business Info</button>
+      <button class="more-item" data-tab="resources" onclick="window.showTab && window.showTab('resources')">Resources</button>
+      <button id="more-close" class="more-close" onclick="window.hideMore && window.hideMore()">Close</button>
     </div>
-    <div class="more-backdrop" id="more-backdrop"></div>
+    <div class="more-backdrop" id="more-backdrop" onclick="window.hideMore && window.hideMore()"></div>
   </div>
 
-  <script src="app.js?v=5"></script>
+  <!-- Load JS last; add cache-bust query -->
+  <script src="app.js?v=6"></script>
 </body>
 </html>
