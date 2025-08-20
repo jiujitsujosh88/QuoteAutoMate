@@ -2,47 +2,94 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>QuoteAutoMate</title>
 
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json"/>
-  <meta name="theme-color" content="#2d89ef"/>
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#2d89ef" />
 
   <!-- Styles -->
-  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header>
-    <h1>QuoteAutoMate</h1>
-    <span id="sw-status">SW: …</span>
+  <header class="header">
+    <h1 class="brand">QuoteAutoMate</h1>
+    <div class="badges">
+      <span id="net" class="pill">…</span>
+      <span id="sw" class="pill">SW: …</span>
+    </div>
   </header>
 
-  <main>
-    <nav>
-      <button class="tab-button" data-tab="home">Home</button>
-      <button class="tab-button" data-tab="history">History</button>
-      <button id="more-btn">More</button>
-    </nav>
-
-    <section id="home" class="tab active">
-      <h2>Home</h2>
-      <p>Welcome to QuoteAutoMate skeleton.</p>
+  <main class="container">
+    <!-- Tabs (bottom bar controls which section is visible) -->
+    <section id="tab-quotes" class="tab active" aria-label="Quotes">
+      <h2>Quotes</h2>
+      <p class="hint">Skeleton ready. (We’ll build features tab-by-tab.)</p>
     </section>
 
-    <section id="history" class="tab">
+    <section id="tab-history" class="tab" aria-label="History">
       <h2>History</h2>
-      <p>Past jobs will appear here.</p>
+      <p class="hint">Past quotes will list here.</p>
+    </section>
+
+    <section id="tab-customers" class="tab" aria-label="Customers">
+      <h2>Customers</h2>
+      <p class="hint">Customer list & quick search.</p>
+    </section>
+
+    <section id="tab-presets" class="tab" aria-label="Presets">
+      <h2>Presets</h2>
+      <p class="hint">Saved services & parts bundles.</p>
+    </section>
+
+    <section id="tab-analytics" class="tab" aria-label="Analytics">
+      <h2>Analytics</h2>
+      <p class="hint">KPIs & date range reports.</p>
+    </section>
+
+    <!-- Secondary (via More) -->
+    <section id="tab-settings" class="tab" aria-label="Settings">
+      <h2>Settings</h2>
+      <p class="hint">Language, currency, role (lite/pro).</p>
+    </section>
+
+    <section id="tab-business" class="tab" aria-label="Business Info">
+      <h2>Business Info</h2>
+      <p class="hint">Name, logo, contact, defaults.</p>
+    </section>
+
+    <section id="tab-resources" class="tab" aria-label="Resources">
+      <h2>Resources</h2>
+      <p class="hint">Employees, sublets, suppliers.</p>
     </section>
   </main>
 
-  <!-- More Menu (native dialog) -->
-  <dialog id="more-dialog">
-    <h2>More</h2>
-    <button id="reset-app">Reset App (Hard Refresh)</button><br/><br/>
-    <button id="close-more">Close</button>
+  <!-- Bottom tab bar -->
+  <nav class="tabbar" aria-label="Bottom Tabs">
+    <button class="tab-btn active" data-tab="quotes">Quotes</button>
+    <button class="tab-btn" data-tab="history">History</button>
+    <button class="tab-btn" data-tab="customers">Customers</button>
+    <button class="tab-btn" data-tab="presets">Presets</button>
+    <button class="tab-btn" data-tab="analytics">Analytics</button>
+    <button class="tab-btn" data-tab="more">More</button>
+  </nav>
+
+  <!-- More (native dialog = most reliable) -->
+  <dialog id="more-dialog" class="sheet">
+    <div class="sheet-head">
+      <strong>More</strong>
+      <button id="close-more" class="icon-btn" aria-label="Close">✕</button>
+    </div>
+    <div class="sheet-body">
+      <button class="sheet-item" data-tab="settings">Settings</button>
+      <button class="sheet-item" data-tab="business">Business Info</button>
+      <button class="sheet-item" data-tab="resources">Resources</button>
+      <hr/>
+      <button id="force-update" class="sheet-item outline">Force Update (clear cache & reload)</button>
+    </div>
   </dialog>
 
-  <script src="app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
