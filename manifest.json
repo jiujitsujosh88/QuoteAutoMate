@@ -1,12 +1,10 @@
 {
-  "name": "Quote AutoMate",
+  "name": "QuoteAutoMate",
   "short_name": "QAM",
-  "description": "Quote AutoMate – mobile-first quoting & analytics PWA.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f1115",
-  "theme_color": "#0f1115",
-  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#2d89ef",
   "icons": [
     {
       "src": "icon-192.png",
