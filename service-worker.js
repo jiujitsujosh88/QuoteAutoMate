@@ -1,47 +1,54 @@
-// Use relative URLs so it works under GitHub Pages repo path
-const CACHE_NAME = "qam-v3";
-const PRECACHE = [
-  "./",
-  "./index.html",
-  "./styles.css",
-  "./app.js",
-  "./manifest.json",
-  "./icon-192.png",
-  "./icon-512.png"
+/* Quote AutoMate – Service Worker (cache-first) */
+const CACHE_VERSION = 'qam-cache-v0.2.7'; // bump this when files change
+const CORE_ASSETS = [
+  './',
+  './index.html',
+  './app.js',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE))
-  );
-  self.skipWaiting();
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_VERSION);
+    await cache.addAll(CORE_ASSETS);
+    self.skipWaiting();
+  })());
 });
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => (k !== CACHE_VERSION) ? caches.delete(k) : null));
+    self.clients.claim();
+  })());
 });
 
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
-  // Only handle GET
-  if (request.method !== "GET") return;
-  event.respondWith(
-    caches.match(request).then(cached => {
-      if (cached) return cached;
-      return fetch(request).then(resp => {
-        // Optionally cache new navigations/assets
-        const respClone = resp.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, respClone)).catch(()=>{});
-        return resp;
-      }).catch(() => {
-        // Offline fallback (optional): return cached shell
-        if (request.mode === "navigate") return caches.match("./index.html");
-      });
-    })
-  );
+self.addEventListener('message', (event)=>{
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+// Cache-first for same-origin GET
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+  if (req.method !== 'GET' || url.origin !== location.origin) return;
+
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_VERSION);
+    const cached = await cache.match(req);
+    if (cached) return cached;
+
+    try {
+      const fresh = await fetch(req);
+      if (fresh && (req.mode === 'navigate' || ['document','script','style','image'].includes(req.destination))) {
+        cache.put(req, fresh.clone());
+      }
+      return fresh;
+    } catch (e) {
+      if (req.mode === 'navigate') return cache.match('./index.html');
+      throw e;
+    }
+  })());
 });
