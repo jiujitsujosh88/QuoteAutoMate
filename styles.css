@@ -66,8 +66,7 @@ body{
   position:fixed; inset:0; z-index:40;
 }
 .more-backdrop{
-  position:absolute; inset:0;
-  background:rgba(0,0,0,.35);
+  position:absolute; inset:0; background:rgba(0,0,0,.35);
 }
 .more-sheet{
   position:absolute; left:0; right:0; bottom:0;
@@ -89,11 +88,17 @@ body{
 }
 .more-close{text-align:center; background:#182034}
 
-/* Simple placeholder blocks so panes aren't “empty” */
+/* Simple placeholder labels per pane */
 .tab-pane::before{
   content: attr(aria-label);
   display:inline-block;
   font-weight:700; color:var(--muted);
   margin-bottom:10px; padding:6px 10px;
   border:1px solid var(--border); border-radius:8px;
+}
+
+.placeholder{
+  margin-top:8px; padding:12px;
+  border:1px dashed var(--border);
+  border-radius:8px; color:var(--muted);
 }
