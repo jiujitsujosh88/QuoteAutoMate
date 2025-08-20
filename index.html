@@ -16,8 +16,11 @@
       padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
       backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
     .app-title{font-weight:700;letter-spacing:.2px;user-select:none;cursor:default}
+    .header-right{display:flex;gap:8px;align-items:center}
     .net{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;}
     .net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
+    .install-btn{display:none;font-size:.78rem;padding:4px 10px;border-radius:10px;border:1px solid var(--border);
+      background:#182034;color:var(--text)}
 
     /* Main */
     #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
@@ -49,7 +52,10 @@
   <!-- Header -->
   <header class="app-header">
     <div id="app-title" class="app-title" title="Long-press to Force Update">Quote AutoMate</div>
-    <div id="net-status" class="net">Online</div>
+    <div class="header-right">
+      <button id="installBtn" class="install-btn" type="button">Install App</button>
+      <div id="net-status" class="net">Online</div>
+    </div>
   </header>
 
   <!-- Main content -->
@@ -91,11 +97,11 @@
 
   <script>
   (function(){
-    const State = { activeTab: 'quotes' };
+    const State = { activeTab: 'quotes', deferredPrompt: null };
     const $ = (sel, root=document) => root.querySelector(sel);
     const $all = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-    // ---------- Force Update (shared) ----------
+    // ---------- Force Update ----------
     async function forceUpdate(){
       try {
         if ('caches' in window) {
@@ -156,14 +162,13 @@
         dlg.removeAttribute('inert');
         dlg.showModal();
       } else {
-        // Fallback if dialog unsupported
-        alert('Settings • Business Info • Resources\n\n(Your browser lacks <dialog> support in this mode.)');
+        alert('Settings • Business Info • Resources');
       }
     }
     function closeMore(){
       if (supportsDialog() && dlg.open){
         dlg.close();
-        dlg.setAttribute('inert',''); // prevent focus if somehow reflowed
+        dlg.setAttribute('inert','');
       }
     }
     function wireMore(){
@@ -179,7 +184,6 @@
           const t=item.dataset.tab; if (t) showTab(t);
         }, {passive:false});
       });
-      // Force Update button inside dialog
       $('#force-update')?.addEventListener('click', forceUpdate);
     }
 
@@ -205,11 +209,44 @@
       });
     }
 
+    // ---------- Install flow (Android/Chrome) ----------
+    function initInstall(){
+      const btn = $('#installBtn');
+      // Hide if already installed
+      const hide = ()=>{ if (btn) btn.style.display='none'; };
+      const show = ()=>{ if (btn) btn.style.display='inline-block'; };
+
+      // Detect installed (all cases)
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+      if (isStandalone) hide();
+
+      window.addEventListener('appinstalled', hide);
+
+      window.addEventListener('beforeinstallprompt', (e)=>{
+        // Prevent auto mini-infobar
+        e.preventDefault();
+        State.deferredPrompt = e;
+        show();
+      });
+
+      btn?.addEventListener('click', async ()=>{
+        const prompt = State.deferredPrompt;
+        if (!prompt) return;
+        prompt.prompt();
+        try { await prompt.userChoice; } finally {
+          State.deferredPrompt = null;
+          hide();
+        }
+      });
+    }
+
     // ---------- Boot ----------
     document.addEventListener('DOMContentLoaded', ()=>{
       checkResetFlag();
       initEasterReset();
       initNet();
+
       // wire bottom tabs
       $all('.tab-btn').forEach(btn=>{
         btn.addEventListener('click', (e) => {
@@ -218,8 +255,11 @@
           showTab(t);
         }, {passive:true});
       });
+
       wireMore();
       mountPlaceholders();
+      initInstall();
+
       // restore last tab
       let last = 'quotes';
       try { const saved = localStorage.getItem('lastTab'); if (saved) last = saved; } catch(_) {}
