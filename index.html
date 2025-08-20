@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Quote AutoMate</title>
+
+  <meta name="theme-color" content="#0d9488"/>
+
+  <!-- Manifest + Icons -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icons/icon-192.png" sizes="192x192">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+  <!-- Versioned CSS to defeat cache -->
+  <link rel="stylesheet" href="./styles.css?v=v0.2.6"/>
+</head>
+<body>
+  <header class="app-header" role="banner">
+    <h1>Quote AutoMate</h1>
+    <div id="netStatus" aria-live="polite">Checking…</div>
+  </header>
+
+  <main class="container" role="main">
+    <p class="hint">Welcome! Use the tabs below.</p>
+
+    <!-- Panels -->
+    <section id="quotes" class="tab" hidden aria-labelledby="tab-quotes">
+      <h2 id="tab-quotes">Quotes</h2>
+      <p>Quotes panel placeholder.</p>
+    </section>
+
+    <section id="history" class="tab" hidden aria-labelledby="tab-history">
+      <h2 id="tab-history">History</h2>
+      <p>History panel placeholder.</p>
+    </section>
+
+    <section id="customers" class="tab" hidden aria-labelledby="tab-customers">
+      <h2 id="tab-customers">Customers</h2>
+      <p>Customers panel placeholder.</p>
+    </section>
+
+    <section id="presets" class="tab" hidden aria-labelledby="tab-presets">
+      <h2 id="tab-presets">Presets</h2>
+      <p>Presets panel placeholder.</p>
+    </section>
+
+    <section id="analytics" class="tab" hidden aria-labelledby="tab-analytics">
+      <h2 id="tab-analytics">Analytics</h2>
+      <p>Analytics panel placeholder.</p>
+    </section>
+
+    <!-- More-sheet targets -->
+    <section id="business" class="tab" hidden aria-labelledby="tab-business">
+      <h2 id="tab-business">Business Info</h2>
+      <p>Business info placeholder.</p>
+    </section>
+
+    <section id="resources" class="tab" hidden aria-labelledby="tab-resources">
+      <h2 id="tab-resources">Resources</h2>
+      <p>Resources placeholder.</p>
+    </section>
+
+    <section id="settings" class="tab" hidden aria-labelledby="tab-settings">
+      <h2 id="tab-settings">Settings</h2>
+      <p>Settings placeholder.</p>
+    </section>
+  </main>
+
+  <!-- Bottom Tab Bar -->
+  <nav class="bottom-nav" role="navigation" aria-label="Primary">
+    <button class="nav-btn" data-tab="quotes" aria-controls="quotes">Quotes</button>
+    <button class="nav-btn" data-tab="history" aria-controls="history">History</button>
+    <button class="nav-btn" data-tab="customers" aria-controls="customers">Customers</button>
+    <button class="nav-btn" data-tab="presets" aria-controls="presets">Presets</button>
+    <button class="nav-btn" data-tab="analytics" aria-controls="analytics">Analytics</button>
+    <button id="moreBtn" class="nav-btn" aria-expanded="false" aria-controls="moreDrawer">More</button>
+  </nav>
+
+  <!-- More Drawer (sheet above bottom nav) -->
+  <div id="moreDrawer" class="drawer" hidden role="menu" aria-label="More">
+    <button class="drawer-link" data-tab="business" role="menuitem">Business Info</button>
+    <button class="drawer-link" data-tab="resources" role="menuitem">Resources</button>
+    <button class="drawer-link" data-tab="settings" role="menuitem">Settings</button>
+  </div>
+
+  <noscript><strong>This app requires JavaScript.</strong></noscript>
+
+  <!-- Versioned JS to defeat cache -->
+  <script defer src="./app.js?v=v0.2.6"></script>
+</body>
+</html>
