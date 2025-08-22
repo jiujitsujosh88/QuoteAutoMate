@@ -1,84 +1,173 @@
+/* ===============================
+   QuoteAutoMate – Skeleton Styles
+   =============================== */
+
 :root{
-  --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
-  --accent:#3aa3ff; --border:#232836;
-  --tabbar-h:64px; /* bottom bar height */
+  --bg:#0f1115;
+  --card:#151924;
+  --text:#e9eef8;
+  --muted:#a9b3c9;
+  --accent:#3aa3ff;
+  --border:#232836;
+  --barH: 64px;     /* bottom tab bar height */
 }
-*{box-sizing:border-box}
-html,body{height:100%}
+
+*{ box-sizing:border-box }
+html,body{ height:100% }
 body{
-  margin:0;background:var(--bg);color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
 }
 
-/* Header */
-.app-header{
-  position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
-  padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
-  border-bottom:1px solid var(--border);backdrop-filter:blur(8px)
-}
-.app-title{font-weight:700}
-.badges{display:flex;gap:8px;align-items:center}
-.net{
-  font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521
-}
-.net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
-.sw{font-size:.78rem;opacity:.8}
+#app{ min-height:100dvh; display:flex; flex-direction:column }
 
-/* Main area leaves room for fixed tab bar (plus safe area) */
-#tab-content{
+/* ----------------
+   Header / Status
+   ---------------- */
+header{
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px;
+  background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
+  backdrop-filter: blur(8px);
+  border-bottom:1px solid var(--border);
+}
+header h1{ margin:0; font-size:1.05rem; letter-spacing:.2px }
+#status-bar{ display:flex; gap:10px; align-items:center; font-size:.82rem; }
+#sw-status{ opacity:.8 }
+#online-status{
+  padding:3px 8px; border-radius:999px; border:1px solid var(--border);
+  background:#101521;
+}
+#online-status::before{
+  content:"•"; margin-right:6px;
+  color:#5ee17d;
+}
+.offline #online-status::before{ color:#ff8b8b }
+
+/* --------------
+   Main / Tabs
+   -------------- */
+#main-content{
+  flex:1 1 auto;
   padding:16px;
-  padding-bottom:calc(var(--tabbar-h) + 24px + env(safe-area-inset-bottom));
-  min-height:calc(100dvh - 120px);
-}
-.tab-pane{display:none}
-.tab-pane.active{display:block}
-.tab-pane::before{
-  content:attr(aria-label);display:inline-block;font-weight:700;color:var(--muted);
-  margin-bottom:8px;padding:6px 10px;border:1px solid var(--border);border-radius:8px
-}
-.placeholder{
-  margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted)
+  padding-bottom: calc(var(--barH) + 16px); /* keep above bottom bar */
+  min-height: 0; /* allow inner scroll areas */
 }
 
-/* Bottom Tabbar */
-.tabbar{
-  position:fixed;bottom:0;left:0;right:0;z-index:20;
-  display:grid;grid-template-columns:repeat(6,1fr);
-  gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom)) 10px;
+.tab-content{ display:none; }
+.tab-content.active{ display:block; }
+
+.tab-content h2{
+  margin:.2rem 0 .6rem;
+  font-size:1rem; color:var(--muted);
+  padding:6px 10px; border:1px solid var(--border); border-radius:8px;
+  display:inline-block;
+}
+.tab-content p{ color:var(--muted) }
+
+/* Make Settings content scrollable if taller than viewport */
+#tab-settings{
+  max-height: calc(100dvh - 120px); /* header + paddings */
+  overflow:auto;
+  padding-bottom: 8px;
+}
+
+#settings-form{
+  display:grid; gap:12px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+}
+#settings-form label{
+  display:flex; flex-direction:column; gap:6px; font-size:.95rem;
+}
+#settings-form select, #settings-form input, #settings-form button{
+  background:#101521; color:var(--text);
+  border:1px solid var(--border); border-radius:10px; padding:10px;
+}
+#settings-form button{ background:#182034; cursor:pointer }
+#settings-form button:hover{ filter:brightness(1.05) }
+
+#seed-controls{
+  margin-top:12px;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+#seed-controls button{
+  background:#182034; color:var(--text);
+  border:1px solid var(--border); border-radius:10px; padding:8px 12px;
+  cursor:pointer;
+}
+
+/* ---------------------
+   Bottom Tab Bar (PWA)
+   --------------------- */
+#tab-bar{
+  position:fixed; left:0; right:0; bottom:0; z-index:20;
+  height: var(--barH);
+  display:flex; align-items:center; gap:6px;
+  padding:8px;
   border-top:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));
-  backdrop-filter:blur(8px);
-  height:var(--tabbar-h);
+  background:linear-gradient(180deg,rgba(15,17,21,.82),rgba(15,17,21,.97));
+  backdrop-filter: blur(8px);
 }
-.tab-btn{
-  min-width:0;background:transparent;color:var(--muted);
-  border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px;
-  font-size:13px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
-}
-.tab-btn.active{color:var(--text);background:rgba(58,163,255,.14)}
-/* Compact labels on small screens */
-@media (max-width:385px){ .tab-btn{font-size:12px} }
-@media (max-width:350px){ .tab-btn{font-size:11px} }
 
-/* More dialog */
-dialog#more-dialog{border:none;padding:0;background:transparent}
-dialog#more-dialog::backdrop{background:rgba(0,0,0,.35)}
-.sheet{
-  position:fixed;left:0;right:0;bottom:0;background:var(--card);
-  border-top-left-radius:18px;border-top-right-radius:18px;border:1px solid var(--border);
-  padding:12px;animation:slideUp .18s ease-out
+#tab-bar .tab-button{
+  flex:1 1 0;
+  height:100%;
+  display:flex; align-items:center; justify-content:center;
+  background:transparent; color:var(--muted);
+  border:none; border-radius:12px; padding:0 6px;
+  font-weight:600; letter-spacing:.2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-@keyframes slideUp{from{transform:translateY(20px);opacity:.6}to{transform:translateY(0);opacity:1}}
-.sheet h3{margin:4px 4px 8px}
-.sheet-item{
-  width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
-  border:1px solid var(--border);border-radius:10px;padding:12px
+#tab-bar .tab-button.active{
+  color:var(--text);
+  background:rgba(58,163,255,.14);
+  border:1px solid rgba(58,163,255,.2);
 }
-.sheet-item.primary{text-align:center;background:#182034}
-.sheet-item.outline{border-style:dashed}
 
-/* Cards / controls */
-.card{border:1px solid var(--border);border-radius:12px;background:#101521;padding:12px;margin:12px 0}
-label{display:block;margin:6px 0;color:var(--muted)}
-button{background:#182034;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
-button.danger{background:#3a1920;border-color:#5a2732}
+/* Compact kabob on the far right */
+#tab-bar .tab-button.kabob{
+  flex:0 0 auto; width:42px; min-width:42px;
+  font-size:1.25rem; padding:0;
+}
+
+/* ------------
+   More dialog
+   ------------ */
+dialog#more-dialog{ border:none; padding:0; background:transparent }
+dialog#more-dialog::backdrop{ background:rgba(0,0,0,.35) }
+
+dialog#more-dialog .sheet{
+  position:fixed; left:0; right:0; bottom:0;
+  background:var(--card);
+  border-top-left-radius:18px; border-top-right-radius:18px;
+  border:1px solid var(--border);
+  padding:12px;
+  animation: slideUp .18s ease-out;
+}
+@keyframes slideUp{
+  from{ transform:translateY(20px); opacity:.6 }
+  to{ transform:translateY(0); opacity:1 }
+}
+.more-title{ font-weight:700; padding:6px 4px 10px 4px }
+.more-list{ display:grid; gap:8px; margin:0; padding:0; list-style:none }
+.more-list button{
+  width:100%; text-align:left; background:#101521; color:var(--text);
+  border:1px solid var(--border); border-radius:10px; padding:12px;
+}
+.more-actions{ display:flex; gap:8px; margin-top:8px }
+.more-actions button{
+  flex:1 1 0; background:#182034; color:var(--text);
+  border:1px solid var(--border); border-radius:10px; padding:10px;
+  cursor:pointer;
+}
+
+/* ----------
+   Utilities
+   ---------- */
+.hidden{ display:none !important }
