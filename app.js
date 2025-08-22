@@ -1,194 +1,219 @@
 (() => {
-  // ---------- App state ----------
+  // ---------------- Core app state ----------------
   const App = {
-    version: '0.3.4-dbfix-ui',
-    plan: 'pro', role: 'sa', lang: 'en',
+    version: '0.3.2-skeleton-stable',
+    plan: 'lite',      // dev toggle; will be server-activated later
+    role: 'tech',      // 'tech'|'sa'|'owner'
+    lang: 'en',
     currency: { code:'USD', symbol:'$', locale:'en-US' },
-    load(){ try{ const raw=localStorage.getItem('QAM_STATE'); if(raw) Object.assign(this, JSON.parse(raw)); }catch(_){} },
-    save(){ try{ localStorage.setItem('QAM_STATE', JSON.stringify({version:this.version,plan:this.plan,role:this.role,lang:this.lang,currency:this.currency})); }catch(_){} }
-  };
-
-  // ---------- i18n ----------
-  const STRINGS = {
-    en:{'app.title':'Quote AutoMate','tabs.quotes':'Quotes','tabs.history':'History','tabs.customers':'Customers','tabs.presets':'Presets','tabs.analytics':'Analytics','tabs.more':'More',
-        'more.title':'More','more.settings':'Settings','more.business':'Business Info','more.resources':'Resources','more.forceUpdate':'Force Update (clear cache & reload)','more.close':'Close',
-        'ph.quotes':'Start your quote flow here.','ph.history':'Recent quotes. (Later: quick-add from prior tickets.)','ph.customers':'Customer list & quick search.','ph.presets':'Your saved presets will appear here.','ph.analytics':'KPIs & date-range reports.','ph.settings':'Language, currency, role.','ph.business':'Business name, logo, contact, financial defaults.','ph.resources':'Employees, sublets, suppliers.'},
-    es:{'app.title':'Quote AutoMate','tabs.quotes':'Cotizaciones','tabs.history':'Historial','tabs.customers':'Clientes','tabs.presets':'Preajustes','tabs.analytics':'Análisis','tabs.more':'Más',
-        'more.title':'Más','more.settings':'Ajustes','more.business':'Información del negocio','more.resources':'Recursos','more.forceUpdate':'Forzar actualización (borrar caché y recargar)','more.close':'Cerrar',
-        'ph.quotes':'Comienza tu flujo de cotización aquí.','ph.history':'Cotizaciones recientes. (Después: añadir rápido desde tickets previos.)','ph.customers':'Lista de clientes y búsqueda rápida.','ph.presets':'Tus preajustes aparecerán aquí.','ph.analytics':'KPIs e informes por rango de fechas.','ph.settings':'Idioma, moneda, rol.','ph.business':'Nombre del negocio, logo, contacto y valores por defecto.','ph.resources':'Empleados, subcontratos, proveedores.'}
-  };
-  const t=(k)=> (STRINGS[App.lang]||STRINGS.en)[k] || STRINGS.en[k] || k;
-
-  function applyI18n(){
-    document.querySelectorAll('[data-i18n]').forEach(el=>{ el.textContent = t(el.getAttribute('data-i18n')); });
-    const aria={ 'tab-quotes':'tabs.quotes','tab-history':'tabs.history','tab-customers':'tabs.customers','tab-presets':'tabs.presets','tab-analytics':'tabs.analytics','tab-settings':'more.settings','tab-business':'more.business','tab-resources':'more.resources' };
-    Object.entries(aria).forEach(([id,key])=>{ const el=document.getElementById(id); if(el) el.setAttribute('aria-label',t(key)); });
-    const ph={quotes:'ph.quotes',history:'ph.history',customers:'ph.customers',presets:'ph.presets',analytics:'ph.analytics',settings:'ph.settings',business:'ph.business',resources:'ph.resources'};
-    Object.entries(ph).forEach(([pane,key])=>{
-      const el=document.getElementById('tab-'+pane); if(!el) return;
-      let box=el.querySelector('.placeholder'); if(!box){ box=document.createElement('div'); box.className='placeholder'; el.appendChild(box); }
-      box.textContent=t(key);
-    });
-  }
-
-  // ---------- formatting helpers ----------
-  const fmt={ money(v){ try{ return new Intl.NumberFormat(App.currency.locale,{style:'currency',currency:App.currency.code,maximumFractionDigits:2}).format(v||0);}catch(_){return `${App.currency.symbol}${(v||0).toFixed(2)}`}},
-              number(v){ try{ return new Intl.NumberFormat(App.currency.locale).format(v||0);}catch(_){return String(v??0)}},
-              date(d){ try{ const dt=d instanceof Date?d:new Date(d); return new Intl.DateTimeFormat(App.currency.locale,{year:'numeric',month:'short',day:'2-digit'}).format(dt);}catch(_){return String(d)}} };
-
-  // ---------- IndexedDB (bump version to force clean shape) ----------
-  const DB_NAME='QAM_DB', DB_VERSION=4;
-  const MIGRATIONS={
-    1(db){ const q=db.createObjectStore('quotes',{keyPath:'id'}); q.createIndex('by_customer','customerId'); q.createIndex('by_date','createdAt');
-           const c=db.createObjectStore('customers',{keyPath:'id'}); c.createIndex('by_name','name');
-           const v=db.createObjectStore('vehicles',{keyPath:'id'}); v.createIndex('by_vin','vin',{unique:false});
-           const p=db.createObjectStore('presets',{keyPath:'id'}); p.createIndex('by_name','name');
-           db.createObjectStore('meta',{keyPath:'key'}); },
-    2(db){ const q=db.objectStore('quotes'); if (![...q.indexNames].includes('by_status')) q.createIndex('by_status','status'); },
-    3(_db){},
-    4(_db){} // version bump only
-  };
-  function openDB(){ return new Promise((res,rej)=>{ const req=indexedDB.open(DB_NAME,DB_VERSION);
-    req.onupgradeneeded=(e)=>{ const db=req.result; const old=e.oldVersion||0; for(let v=old+1; v<=DB_VERSION; v++){ const step=MIGRATIONS[v]; if(typeof step==='function') step(db);} };
-    req.onsuccess=()=>res(req.result); req.onerror=()=>rej(req.error); });
-  }
-  const DB={
-    db:null, async init(){ if(!this.db) this.db=await openDB(); return this.db; },
-    async countAll(){ const db=await this.init(); const stores=['quotes','customers','vehicles','presets']; const tx=db.transaction(stores,'readonly'); const out={};
-      await Promise.all(stores.map(s=>new Promise((r,j)=>{ const rq=tx.objectStore(s).count(); rq.onsuccess=()=>{out[s]=rq.result;r()}; rq.onerror=()=>j(rq.error);}))); return out; },
-    async clearAll(){ const db=await this.init(); const tx=db.transaction(['quotes','customers','vehicles','presets'],'readwrite'); ['quotes','customers','vehicles','presets'].forEach(s=>tx.objectStore(s).clear());
-      return new Promise((r,j)=>{ tx.oncomplete=()=>r(); tx.onerror=()=>j(tx.error); }); },
-    async seed(n=2){ const db=await this.init(); const now=Date.now(); const tx=db.transaction(['quotes','customers','vehicles','presets'],'readwrite');
-      const q=tx.objectStore('quotes'), c=tx.objectStore('customers'), v=tx.objectStore('vehicles'), p=tx.objectStore('presets');
-      for(let i=0;i<n;i++){ const id=crypto.randomUUID(), cust=crypto.randomUUID(), veh=crypto.randomUUID();
-        c.put({id:cust,name:`Customer ${Math.floor(Math.random()*1000)}`,phone:'',email:''});
-        v.put({id:veh,vin:'',year:2020,make:'Demo',model:'Unit',plate:''});
-        q.put({id,customerId:cust,vehicleId:veh,createdAt:now-i*86400000,status:'draft',total:Math.round(Math.random()*800)/1});
-        p.put({id:crypto.randomUUID(),name:`Preset ${Math.floor(Math.random()*100)}`,items:[]});
-      }
-      return new Promise((r,j)=>{ tx.oncomplete=()=>r(); tx.onerror=()=>j(tx.error); });
+    load(){
+      try{Object.assign(this, JSON.parse(localStorage.getItem('QAM_STATE')||'{}'));}catch(_){}
+    },
+    save(){
+      try{localStorage.setItem('QAM_STATE', JSON.stringify({
+        version:this.version, plan:this.plan, role:this.role, lang:this.lang, currency:this.currency
+      }));}catch(_){}
     }
   };
-  window.QAM={App,t,fmt,DB};
 
-  // ---------- header badges ----------
-  function setOnlineStatus(){ const el=document.getElementById('net-status'); if(!el) return; const on=navigator.onLine; el.textContent=on?'Online':'Offline'; el.classList.toggle('online',on); el.classList.toggle('offline',!on);}
-  function initNet(){ setOnlineStatus(); addEventListener('online',setOnlineStatus); addEventListener('offline',setOnlineStatus); }
-  function setSWBadge(s){ const el=document.getElementById('sw-status'); if(el) el.textContent=`SW: ${s}`; }
+  // ---------------- Utilities ----------------
+  const $ = (s, r=document)=>r.querySelector(s);
+  const $$ = (s, r=document)=>Array.from(r.querySelectorAll(s));
 
-  // ---------- tabs & more ----------
-  const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
-  function showTab(tab){ $$('.tab-pane').forEach(p=>{p.classList.remove('active');p.hidden=true;});
-    const pane=$('#tab-'+tab); if(pane){ pane.hidden=false; pane.classList.add('active'); }
-    $$('.tab-btn').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
-    try{ localStorage.setItem('QAM_lastTab',tab);}catch(_){}
-    closeMore();
-    if (tab==='settings') mountSettings(true);
+  const fmt = {
+    money(v){ try{
+      return new Intl.NumberFormat(App.currency.locale,{style:'currency',currency:App.currency.code}).format(v||0);
+    }catch(_){ return `${App.currency.symbol}${(v||0).toFixed(2)}`; } },
+  };
+
+  // ---------------- Network + SW badges ----------------
+  function setOnline() {
+    const el = $('#net-status'); if (!el) return;
+    const on = navigator.onLine;
+    el.textContent = on ? 'Online' : 'Offline';
+    el.classList.toggle('online', on);
+    el.classList.toggle('offline', !on);
   }
-  function openMore(){ const d=$('#more-dialog'); if(d && !d.open) d.showModal(); }
-  function closeMore(){ const d=$('#more-dialog'); if(d && d.open) d.close(); }
+  function setSWBadge(t){ const b = $('#sw-status'); if (b) b.textContent = `SW: ${t}`; }
+
+  // ---------------- Tab system ----------------
+  function showTab(tab){
+    $$('.tab-pane').forEach(p=>{p.classList.remove('active');p.hidden=true;});
+    const pane = $('#tab-'+tab); if (pane){pane.hidden=false;pane.classList.add('active');}
+    $$('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+    if (tab!=='more') try{localStorage.setItem('QAM_lastTab', tab);}catch(_){}
+    if (tab!=='more') closeMore();
+    if (tab==='settings') renderSettings();     // ensure fresh wiring
+  }
+
   function initTabs(){
-    $$('.tab-btn').forEach(btn=>{
-      btn.addEventListener('click',()=>{ const t=btn.dataset.tab; if(t==='more'){ openMore(); return; } showTab(t);},{passive:true});
+    $$('.tab-btn').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const t = b.dataset.tab;
+        if (t==='more'){ openMore(); return; }
+        showTab(t);
+      }, {passive:true});
     });
+
     $('#more-close')?.addEventListener('click', closeMore);
-    $$('.more-item').forEach(item=> item.addEventListener('click',(e)=>{ e.preventDefault(); const t=item.dataset.tab; if(t) showTab(t); }));
-    let last='quotes'; try{ const s=localStorage.getItem('QAM_lastTab'); if(s) last=s;}catch(_){}
+    $$('#more-dialog .sheet-item').forEach(it=>{
+      it.addEventListener('click', (e)=>{ const t=it.dataset.tab; if (t) showTab(t); });
+    });
+
+    let last='quotes';
+    try{const s=localStorage.getItem('QAM_lastTab'); if (s) last=s;}catch(_){}
     showTab(last);
   }
 
-  // ---------- force update ----------
-  async function forceUpdate(){
-    try{ if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
-      if(navigator.serviceWorker?.controller){ navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'}); }
-    }catch(_){}
-    location.reload();
-  }
-  function initForceUpdate(){ document.getElementById('force-update')?.addEventListener('click', forceUpdate); }
+  function openMore(){ const d=$('#more-dialog'); if (d && !d.open) d.showModal(); }
+  function closeMore(){ const d=$('#more-dialog'); if (d && d.open) d.close(); }
 
-  // ---------- settings mount (idempotent) ----------
-  function mountSettings(force=false){
-    const el=document.getElementById('tab-settings'); if(!el) return;
-    const hasOnlyPlaceholder = el.children.length===1 && el.querySelector('.placeholder');
-    if (!force && el.dataset.mounted) return;
-    if (force && el.innerHTML.trim().length>0 && !hasOnlyPlaceholder) return;
+  // ---------------- Settings render (stable) ----------------
+  function renderSettings(){
+    const el = $('#tab-settings');
+    if (!el) return;
 
-    el.dataset.mounted='1';
-    el.innerHTML=`
+    el.innerHTML = `
       <div class="placeholder" style="border-style:solid">
-        <h3>Settings</h3>
-        <div><strong>Language</strong>
-          <select id="langSel"><option value="en">English</option><option value="es">Español</option></select>
-        </div>
-        <div style="margin-top:8px"><strong>Currency</strong>
-          <div>Code <input id="curCode" value="${App.currency.code}" size="6"/></div>
-          <div>Symbol <input id="curSym" value="${App.currency.symbol}" size="4"/></div>
-          <div>Locale <input id="curLoc" value="${App.currency.locale}" size="10"/></div>
-        </div>
-        <div style="margin-top:12px"><strong>Access (dev only)</strong>
-          <div>Plan:
-            <label><input type="radio" name="plan" value="lite" ${App.plan==='lite'?'checked':''}/> Lite</label>
-            <label><input type="radio" name="plan" value="pro"  ${App.plan==='pro'?'checked':''}/> Pro</label>
-          </div>
-          <div>Role:
-            <label><input type="radio" name="role" value="tech"   ${App.role==='tech'?'checked':''}/> Technician</label>
-            <label><input type="radio" name="role" value="sa"     ${App.role==='sa'?'checked':''}/> Service Advisor</label>
-            <label><input type="radio" name="role" value="owner"  ${App.role==='owner'?'checked':''}/> Owner</label>
-          </div>
-          <button id="savePrefs" type="button">Save</button>
-        </div>
-        <div style="margin-top:12px"><strong>Data (dev only)</strong>
-          <button id="seedBtn" type="button">Seed demo data</button>
-          <button id="wipeBtn" type="button" style="background:#6b1f28">Wipe all data</button>
-          <div id="countsLine" style="margin-top:6px"></div>
-          <div id="errLine" style="margin-top:6px; color:#ff8b8b"></div>
-        </div>
-      </div>`;
+        <strong>Settings</strong>
+      </div>
+      <div class="card">
+        <label>Language</label>
+        <select id="lang">
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
+      </div>
 
-    el.querySelector('#langSel').value = App.lang;
+      <div class="card">
+        <label>Currency</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <input id="ccode" placeholder="Code" value="${App.currency.code}">
+          <input id="csym"  placeholder="Symbol" value="${App.currency.symbol}">
+          <input id="cloc"  placeholder="Locale" value="${App.currency.locale}">
+        </div>
+      </div>
 
-    el.querySelector('#savePrefs').addEventListener('click', async ()=>{
-      App.lang = el.querySelector('#langSel').value;
-      App.currency.code   = el.querySelector('#curCode').value.trim().toUpperCase();
-      App.currency.symbol = el.querySelector('#curSym').value;
-      App.currency.locale = el.querySelector('#curLoc').value.trim() || 'en-US';
-      const plan = el.querySelector('input[name="plan"]:checked')?.value;
-      const role = el.querySelector('input[name="role"]:checked')?.value;
-      if(plan) App.plan=plan; if(role) App.role=role;
-      App.save(); applyI18n(); mountSettings(true); updateCounts();
-    });
+      <div class="card">
+        <label>Access (dev only)</label>
+        <div>Plan:
+          <label><input type="radio" name="plan" value="lite" ${App.plan==='lite'?'checked':''}> Lite</label>
+          <label><input type="radio" name="plan" value="pro"  ${App.plan==='pro'?'checked':''}> Pro</label>
+        </div>
+        <div>Role:
+          <label><input type="radio" name="role" value="tech"   ${App.role==='tech'?'checked':''}> Technician</label>
+          <label><input type="radio" name="role" value="sa"     ${App.role==='sa'?'checked':''}> Service Advisor</label>
+          <label><input type="radio" name="role" value="owner"  ${App.role==='owner'?'checked':''}> Owner</label>
+        </div>
+        <button id="save-settings">Save</button>
+      </div>
 
-    el.querySelector('#seedBtn').addEventListener('click', async ()=>{
-      try{ await DB.seed(2); updateCounts(); el.querySelector('#errLine').textContent=''; }
-      catch(e){ el.querySelector('#errLine').textContent = 'Seed failed: '+(e?.message||e); }
-    });
-    el.querySelector('#wipeBtn').addEventListener('click', async ()=>{
-      try{ await DB.clearAll(); updateCounts(); el.querySelector('#errLine').textContent=''; }
-      catch(e){ el.querySelector('#errLine').textContent = 'Wipe failed: '+(e?.message||e); }
-    });
+      <div class="card">
+        <label>Data (dev only)</label>
+        <button id="seed">Seed demo data</button>
+        <button id="wipe" class="danger">Wipe all data</button>
+        <div id="counts" class="muted"></div>
+      </div>
+    `;
 
-    async function updateCounts(){
-      try{ const c=await DB.countAll();
-        el.querySelector('#countsLine').textContent = `Counts — Quotes: ${c.quotes||0}, Customers: ${c.customers||0}, Vehicles: ${c.vehicles||0}, Presets: ${c.presets||0}`;
-      }catch(e){ el.querySelector('#errLine').textContent = 'Count failed: '+(e?.message||e); }
-    }
+    // set select
+    $('#lang').value = App.lang;
+
+    // wire events
+    $('#save-settings').onclick = ()=>{
+      try{
+        App.lang = $('#lang').value;
+        App.currency = { code:$('#ccode').value.trim()||'USD',
+                         symbol:$('#csym').value.trim()||'$',
+                         locale:$('#cloc').value.trim()||'en-US' };
+        App.plan = $('input[name="plan"]:checked').value;
+        App.role = $('input[name="role"]:checked').value;
+        App.save();
+        toast('Saved');
+      }catch(e){ toast('Save failed'); }
+    };
+    $('#seed').onclick = ()=>{ seedDemo(); updateCounts(); };
+    $('#wipe').onclick = ()=>{ localStorage.clear(); App.save(); updateCounts(); toast('Cleared'); };
     updateCounts();
   }
 
-  // ---------- boot ----------
-  document.addEventListener('DOMContentLoaded', async ()=>{
-    App.load(); applyI18n(); initNet(); initTabs(); initForceUpdate(); mountSettings(true); App.save();
-    try{ await DB.init(); }catch(_){}
+  function toast(msg){
+    // simple non-blocking toast
+    const t=document.createElement('div');
+    t.textContent=msg;
+    t.style.cssText='position:fixed;left:50%;bottom:84px;transform:translateX(-50%);background:#182034;color:#e9eef8;padding:8px 12px;border-radius:10px;border:1px solid #232836;z-index:50';
+    document.body.appendChild(t); setTimeout(()=>t.remove(),1400);
+  }
+
+  function updateCounts(){
+    const counts = JSON.parse(localStorage.getItem('QAM_COUNTS')||'{"q":0,"c":0,"v":0,"p":0}');
+    const el = $('#counts'); if (el) el.textContent = `Counts — Quotes: ${counts.q}, Customers: ${counts.c}, Vehicles: ${counts.v}, Presets: ${counts.p}`;
+  }
+  function seedDemo(){
+    const k='QAM_COUNTS';
+    const c = JSON.parse(localStorage.getItem(k) || '{"q":0,"c":0,"v":0,"p":0}');
+    c.q+=2; c.c+=2; c.v+=2; c.p+=1;
+    localStorage.setItem(k, JSON.stringify(c));
+  }
+
+  // ---------------- Install prompt (manual button shows only when allowed) ----------------
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault(); deferredPrompt = e;
+    $('#install-btn').hidden = false;
+  });
+  $('#install-btn')?.addEventListener('click', async ()=>{
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    $('#install-btn').hidden = true;
   });
 
-  // ---------- SW ----------
+  // ---------------- Force update ----------------
+  async function forceUpdate(){
+    try{
+      if ('caches' in window){ const keys = await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
+      if (navigator.serviceWorker?.controller){ navigator.serviceWorker.controller.postMessage({type:'SKIP_WAITING'}); }
+    }catch(_){}
+    location.reload();
+  }
+  $('#force-update')?.addEventListener('click', forceUpdate);
+
+  // ---------------- Boot ----------------
+  document.addEventListener('DOMContentLoaded', ()=>{
+    App.load(); setOnline(); initTabs(); renderPlaceholders(); renderSettings(); App.save();
+  });
+  window.addEventListener('online', setOnline); window.addEventListener('offline', setOnline);
+
+  function renderPlaceholders(){
+    const map = {
+      quotes:'Start your quote flow here.',
+      history:'Recent quotes. (Later: quick-add from prior tickets.)',
+      customers:'Customer list & quick search.',
+      presets:'Your saved presets will appear here.',
+      analytics:'KPIs & date-range reports.',
+      settings:'Language, currency, role.',
+      business:'Business name, logo, contact, financial defaults.',
+      resources:'Employees, sublets, suppliers.'
+    };
+    Object.entries(map).forEach(([k,v])=>{
+      const el = $('#tab-'+k);
+      if (el && !el.dataset.mounted){
+        const b = document.createElement('div'); b.className='placeholder'; b.textContent=v;
+        el.appendChild(b); el.dataset.mounted='1';
+      }
+    });
+  }
+
+  // ---------------- Service worker ----------------
   if ('serviceWorker' in navigator){
     window.addEventListener('load', async ()=>{
       try{
-        const reg=await navigator.serviceWorker.register('./service-worker.js');
-        setSWBadge(reg.active?'registered':'installing');
-        navigator.serviceWorker.addEventListener('controllerchange',()=>setSWBadge('updated'));
+        const reg = await navigator.serviceWorker.register('./service-worker.js');
+        setSWBadge(reg.active ? 'registered' : 'installing');
+        navigator.serviceWorker.addEventListener('controllerchange', ()=> setSWBadge('updated'));
       }catch(e){ setSWBadge('error'); }
     });
-  } else setSWBadge('n/a');
+  } else { setSWBadge('n/a'); }
 })();
