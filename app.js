@@ -3,12 +3,11 @@
   // App State
   // -----------------------------
   const App = {
-    version: '1.0.0-baseline',
-    plan: 'lite',                 // 'lite' | 'pro' (dev only; will be license-gated later)
-    role: 'tech',                 // 'tech' | 'sa' | 'owner'
-    lang: 'en',                   // 'en' | 'es' (extendable)
+    version: '1.0.1-baseline',
+    plan: 'lite',
+    role: 'tech',
+    lang: 'en',
     currency: { code:'USD', symbol:'$', locale:'en-US' },
-
     load(){
       try {
         const raw = localStorage.getItem('QAM_STATE');
@@ -41,7 +40,6 @@
       'ph.business':'Business name, logo, contact, financial defaults.',
       'ph.resources':'Employees, sublets, suppliers.',
 
-      // Settings form
       'set.lang':'Language','set.plan':'Plan','set.role':'Role','set.currency':'Currency (read-only for now)',
       'set.save':'Save','set.seed':'Seed demo data (+2)','set.clear':'Clear data'
     },
@@ -65,12 +63,10 @@
   const t = (k)=> (STRINGS[App.lang]&&STRINGS[App.lang][k]) || STRINGS.en[k] || k;
 
   function applyI18n(){
-    // data-i18n labels
     document.querySelectorAll('[data-i18n]').forEach(el=>{
       const k = el.getAttribute('data-i18n');
       el.textContent = t(k);
     });
-    // aria for tab headers
     const ariaMap = {
       'tab-quotes':'tabs.quotes','tab-history':'tabs.history','tab-customers':'tabs.customers',
       'tab-presets':'tabs.presets','tab-analytics':'tabs.analytics',
@@ -80,7 +76,6 @@
       const el = document.getElementById(id);
       if (el) el.setAttribute('aria-label', t(key));
     });
-    // placeholders
     const ph = {
       quotes:'ph.quotes',history:'ph.history',customers:'ph.customers',presets:'ph.presets',analytics:'ph.analytics',
       settings:'ph.settings',business:'ph.business',resources:'ph.resources'
@@ -97,7 +92,7 @@
   }
 
   // -----------------------------
-  // Utilities + DOM helpers
+  // Helpers
   // -----------------------------
   const $ = (sel, root=document)=> root.querySelector(sel);
   const $$ = (sel, root=document)=> Array.from(root.querySelectorAll(sel));
@@ -136,7 +131,7 @@
   }
 
   // -----------------------------
-  // Network/SW badges
+  // Network + SW badges
   // -----------------------------
   function setOnlineStatus(){
     const el=$('#net-status'); if(!el) return;
@@ -148,11 +143,45 @@
   function setSWBadge(txt){ const el=$('#sw-status'); if(el) el.textContent = `SW: ${txt}`; }
 
   // -----------------------------
-  // Settings (single long scroll; 4 rows)
+  // Install (reliable prompt)
   // -----------------------------
+  let deferredPrompt = null;
+  function updateInstallButtons(visible){
+    const b1 = $('#installBtn'); const b2 = $('#installBtnMore');
+    [b1,b2].forEach(b=>{ if(!b) return; b.style.display = visible ? 'inline-block' : 'none'; });
+  }
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault();
+    deferredPrompt = e;
+    updateInstallButtons(true);
+  });
+  async function doInstall(){
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    updateInstallButtons(false);
+    // optional: alert(outcome);
+  }
+  function initInstallUI(){
+    $('#installBtn')?.addEventListener('click', doInstall);
+    $('#installBtnMore')?.addEventListener('click', doInstall);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isStandalone) updateInstallButtons(false);
+  }
+
+  // -----------------------------
+  // Settings (single long scroll)
+  // -----------------------------
+  function refreshSeedUI(){
+    const n = Number(localStorage.getItem('QAM_SEED')||'0');
+    const dev = $('#dev-badge');
+    if (dev){ dev.style.display='inline-block'; dev.textContent = `Seed: ${n}`; }
+    const pill = $('#seedCount'); if (pill) pill.textContent = n;
+  }
+
   function mountSettings(){
-    const host = $('#tab-settings'); if(!host) return;
-    if(host.dataset.mounted) return;
+    const host = $('#tab-settings'); if(!host || host.dataset.mounted) return;
     host.dataset.mounted='1';
 
     const wrap = document.createElement('div');
@@ -187,20 +216,22 @@
       </div>
       <div class="actions">
         <button id="saveBtn" data-i18n="set.save">Save</button>
-        <button id="seedBtn" data-i18n="set.seed">Seed demo data (+2)</button>
+        <div class="seedline">
+          <button id="seedBtn" data-i18n="set.seed">Seed demo data (+2)</button>
+          <span class="seedpill">Count: <strong id="seedCount">0</strong></span>
+        </div>
         <button id="clearBtn" data-i18n="set.clear">Clear data</button>
         <button id="force-update" class="more-update" data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
       </div>
     `;
     host.appendChild(wrap);
 
-    // Set current values
     $('#langSel').value = App.lang;
     $('#planSel').value = App.plan;
     $('#roleSel').value = App.role;
     $('#curDisp').value = `${App.currency.code} (${App.currency.symbol}) — ${App.currency.locale}`;
+    refreshSeedUI();
 
-    // Wire actions
     $('#saveBtn').addEventListener('click', ()=>{
       App.lang = $('#langSel').value;
       App.plan = $('#planSel').value;
@@ -211,10 +242,9 @@
     });
 
     $('#seedBtn').addEventListener('click', ()=>{
-      // simple counter demo
       const n = Number(localStorage.getItem('QAM_SEED')||'0')+2;
       localStorage.setItem('QAM_SEED', String(n));
-      alert(`Seed count: ${n}`);
+      refreshSeedUI();
     });
 
     $('#clearBtn').addEventListener('click', async ()=>{
@@ -232,7 +262,7 @@
   }
 
   // -----------------------------
-  // Force Update (cache bust)
+  // Force Update
   // -----------------------------
   async function forceUpdate(){
     try {
@@ -255,7 +285,9 @@
     applyI18n();
     setOnlineStatus(); addEventListener('online',setOnlineStatus); addEventListener('offline',setOnlineStatus);
     initTabs();
-    mountSettings(); // long scroll settings page
+    initInstallUI();
+    mountSettings();
+    refreshSeedUI();
     App.save();
   });
 
