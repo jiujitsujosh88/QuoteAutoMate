@@ -11,13 +11,13 @@
     :root{
       --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
       --accent:#3aa3ff; --border:#232836;
+      --tabbar-h:64px;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{margin:0;background:var(--bg);color:var(--text);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
 
-    /* Header */
     .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;
       justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
       backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
@@ -26,23 +26,25 @@
     .net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
     .sw-badge{font-size:.78rem;margin-left:8px;opacity:.8}
 
-    /* Main */
-    #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
+    #tab-content{padding:16px;padding-bottom:calc(var(--tabbar-h)+env(safe-area-inset-bottom)+24px);min-height:calc(100dvh - 120px);}
     .tab-pane{display:none}
     .tab-pane.active{display:block}
     .tab-pane::before{content:attr(aria-label);display:inline-block;font-weight:700;color:var(--muted);
       margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;}
     .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);}
 
-    /* Bottom Tabbar (5 + kebab) */
     .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);
-      gap:0;padding:8px;border-top:1px solid var(--border);
-      background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);}
-    .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px}
+      gap:0;padding:8px 10px calc(8px + env(safe-area-inset-bottom));border-top:1px solid var(--border);
+      background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);
+      height:var(--tabbar-h);}
+    .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;
+      letter-spacing:.2px;font-size:13px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14);}
-    .tab-btn.kebab{font-size:20px; line-height:1; padding:10px 0; letter-spacing:0}
+    .tab-btn.kebab{font-size:20px;line-height:1;padding:10px 0;letter-spacing:0}
 
-    /* Dialog: More */
+    @media (max-width:385px){ .tab-btn{font-size:12px} }
+    @media (max-width:350px){ .tab-btn{font-size:11px} }
+
     dialog#more-dialog{border:none;padding:0;background:transparent}
     dialog#more-dialog::backdrop{background:rgba(0,0,0,.35)}
     .more-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top-left-radius:18px;border-top-right-radius:18px;
@@ -54,13 +56,14 @@
     .more-close{text-align:center;background:#182034}
     .more-update{border-style:dashed}
 
-    /* i18n lock indicator (future gated controls) */
-    .locked{opacity:.6;filter:saturate(.4)}
-    small.hint{color:var(--muted)}
+    .card{border:1px solid var(--border);border-radius:12px;background:#101521;padding:12px;margin:12px 0}
+    label{display:block;margin:6px 0;color:var(--muted)}
+    button{background:#182034;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+    button.danger{background:#3a1920;border-color:#5a2732}
+    .hint{color:var(--muted);font-size:0.85em;margin-top:4px;}
   </style>
 </head>
 <body>
-  <!-- Header -->
   <header class="app-header">
     <div class="app-title" data-i18n="app.title">Quote AutoMate</div>
     <div>
@@ -69,33 +72,27 @@
     </div>
   </header>
 
-  <!-- Main content -->
   <main id="tab-content">
-    <!-- Primary Tabs -->
     <section id="tab-quotes" class="tab-pane" role="region" aria-label="Quotes"></section>
     <section id="tab-history" class="tab-pane" role="region" aria-label="History"></section>
     <section id="tab-customers" class="tab-pane" role="region" aria-label="Customers"></section>
     <section id="tab-presets" class="tab-pane" role="region" aria-label="Presets"></section>
     <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
 
-    <!-- Secondary Tabs (via More) -->
     <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
     <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
     <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
   </main>
 
-  <!-- Bottom Tab Bar -->
   <nav class="tabbar" aria-label="Bottom Tabs">
     <button class="tab-btn" data-tab="quotes" data-i18n="tabs.quotes">Quotes</button>
     <button class="tab-btn" data-tab="history" data-i18n="tabs.history">History</button>
     <button class="tab-btn" data-tab="customers" data-i18n="tabs.customers">Customers</button>
     <button class="tab-btn" data-tab="presets" data-i18n="tabs.presets">Presets</button>
     <button class="tab-btn" data-tab="analytics" data-i18n="tabs.analytics">Analytics</button>
-    <!-- kebab menu -->
     <button class="tab-btn kebab" data-tab="more" aria-label="More" title="More">⋮</button>
   </nav>
 
-  <!-- More dialog -->
   <dialog id="more-dialog" aria-labelledby="more-title">
     <div class="more-sheet">
       <div id="more-title" class="more-title" data-i18n="more.title">More</div>
