@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Quote AutoMate — v1 baseline</title>
+  <title>Quote AutoMate — v1.0.1</title>
   <meta name="theme-color" content="#0f1115"/>
   <link rel="manifest" href="manifest.json">
   <style>
@@ -23,9 +23,12 @@
     .title-wrap{display:flex;align-items:center;gap:10px;min-width:0}
     .app-title{font-weight:700;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .badges{display:flex;align-items:center;gap:8px}
-    .net,.sw{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;opacity:.9}
+    .net,.sw,.dev{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;opacity:.9}
     .net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
     .sw{color:#a9b3c9}
+    .dev{color:#b0e1ff}
+    .install-btn{font-size:.78rem;padding:4px 10px;border-radius:10px;border:1px solid var(--border);
+      background:#182034;color:var(--text);display:none}
 
     /* Main */
     #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
@@ -42,7 +45,7 @@
     .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px}
     .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14);}
 
-    /* More dialog (native <dialog> for reliability) */
+    /* More dialog */
     dialog#more-dialog{border:none;padding:0;background:transparent}
     dialog#more-dialog::backdrop{background:rgba(0,0,0,.35)}
     .more-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);
@@ -55,7 +58,7 @@
     .more-close{text-align:center;background:#182034}
     .more-update{border-style:dashed}
 
-    /* Simple settings form styles (single long scroll) */
+    /* Simple settings form styles */
     .form{display:grid;gap:12px;max-width:640px}
     .row{display:grid;gap:6px}
     label{font-size:.9rem;color:var(--muted)}
@@ -63,6 +66,8 @@
       border-radius:10px;padding:10px}
     .actions{display:flex;gap:8px;flex-wrap:wrap}
     .note{color:var(--muted);font-size:.85rem}
+    .seedline{display:flex;align-items:center;gap:10px}
+    .seedpill{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;color:#b0e1ff}
   </style>
 </head>
 <body>
@@ -72,6 +77,8 @@
       <div class="app-title" data-i18n="app.title">Quote AutoMate</div>
     </div>
     <div class="badges">
+      <button id="installBtn" class="install-btn">Install</button>
+      <span id="dev-badge" class="dev" style="display:none">Seed: 0</span>
       <span id="net-status" class="net">Online</span>
       <span id="sw-status" class="sw">SW: —</span>
     </div>
@@ -109,6 +116,7 @@
       <button class="more-item" data-tab="settings"  data-i18n="more.settings">Settings</button>
       <button class="more-item" data-tab="business"  data-i18n="more.business">Business Info</button>
       <button class="more-item" data-tab="resources" data-i18n="more.resources">Resources</button>
+      <button id="installBtnMore" class="more-item">Install</button>
       <button class="more-update" id="force-update"  data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
       <button id="more-close" class="more-close"     data-i18n="more.close">Close</button>
     </div>
