@@ -1,12 +1,12 @@
-/* Quote AutoMate SW — v1.0.1 */
-const CACHE_VERSION = 'qam-v1.0.1';
+/* Quote AutoMate SW — v1.0.2 */
+const CACHE_VERSION = 'qam-v1.0.2';
 const CORE_ASSETS = [
   './',
   './index.html',
   './app.js',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icon-192.png',   // <-- root paths
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
