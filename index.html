@@ -14,41 +14,64 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
+    body{
+      margin:0;background:var(--bg);color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+    }
 
-    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;
-      justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
-      backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
+    /* Header */
+    .app-header{
+      position:sticky;top:0;z-index:10;display:flex;align-items:center;
+      justify-content:space-between;padding:12px 16px;
+      background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
+      backdrop-filter: blur(8px);border-bottom:1px solid var(--border);
+    }
     .app-title{font-weight:700;letter-spacing:.2px}
     .net{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;}
     .net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
     .sw-badge{font-size:.78rem;margin-left:8px;opacity:.8}
 
-    #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
+    /* Main */
+    #tab-content{
+      padding:16px;
+      /* more breathing room so long labels (ES) don't hide the tabbar */
+      padding-bottom:140px; 
+      min-height:calc(100dvh - 120px);
+    }
     .tab-pane{display:none}
     .tab-pane.active{display:block}
-    .tab-pane::before{content:attr(aria-label);display:inline-block;font-weight:700;color:var(--muted);
-      margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;}
+    .tab-pane::before{
+      content:attr(aria-label);display:inline-block;font-weight:700;color:var(--muted);
+      margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;
+    }
     .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);}
 
-    .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);
+    /* Bottom Tabbar */
+    .tabbar{
+      position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);
       gap:0;padding:8px;border-top:1px solid var(--border);
-      background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);}
+      background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);
+    }
     .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px}
     .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14);}
 
+    /* Dialog: More */
     dialog#more-dialog{border:none;padding:0;background:transparent}
     dialog#more-dialog::backdrop{background:rgba(0,0,0,.35)}
-    .more-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top-left-radius:18px;border-top-right-radius:18px;
-      border:1px solid var(--border);padding:12px;animation:slideUp .18s ease-out;}
+    .more-sheet{
+      position:fixed;left:0;right:0;bottom:0;background:var(--card);
+      border-top-left-radius:18px;border-top-right-radius:18px;border:1px solid var(--border);
+      padding:12px;animation:slideUp .18s ease-out;
+    }
     @keyframes slideUp{from{transform:translateY(20px);opacity:.6}to{transform:translateY(0);opacity:1}}
     .more-title{font-weight:700;padding:6px 4px 10px 4px;}
-    .more-item,.more-close,.more-update{width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
-      border:1px solid var(--border);border-radius:10px;padding:12px}
+    .more-item,.more-close,.more-update{
+      width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
+      border:1px solid var(--border);border-radius:10px;padding:12px
+    }
     .more-close{text-align:center;background:#182034}
     .more-update{border-style:dashed}
-
+    .locked{opacity:.6;filter:saturate(.4)}
     small.hint{color:var(--muted)}
   </style>
 </head>
@@ -62,12 +85,14 @@
   </header>
 
   <main id="tab-content">
+    <!-- Primary Tabs -->
     <section id="tab-quotes" class="tab-pane" role="region" aria-label="Quotes"></section>
     <section id="tab-history" class="tab-pane" role="region" aria-label="History"></section>
     <section id="tab-customers" class="tab-pane" role="region" aria-label="Customers"></section>
     <section id="tab-presets" class="tab-pane" role="region" aria-label="Presets"></section>
     <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
 
+    <!-- Secondary Tabs -->
     <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
     <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
     <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
@@ -82,19 +107,18 @@
     <button class="tab-btn" data-tab="more" data-i18n="tabs.more">More</button>
   </nav>
 
+  <!-- More dialog -->
   <dialog id="more-dialog" aria-labelledby="more-title">
     <div class="more-sheet">
       <div id="more-title" class="more-title" data-i18n="more.title">More</div>
-      <button class="more-item" data-tab="settings" data-i18n="more.settings">Settings</button>
-      <button class="more-item" data-tab="business" data-i18n="more.business">Business Info</button>
-      <button class="more-item" data-tab="resources" data-i18n="more.resources">Resources</button>
-      <button class="more-update" id="force-update" data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
-      <button id="more-close" class="more-close" data-i18n="more.close">Close</button>
+      <button class="more-item" data-tab="settings"  data-i18n="more.settings">Settings</button>
+      <button class="more-item" data-tab="business"   data-i18n="more.business">Business Info</button>
+      <button class="more-item" data-tab="resources"  data-i18n="more.resources">Resources</button>
+      <button class="more-update" id="force-update"   data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
+      <button id="more-close" class="more-close"      data-i18n="more.close">Close</button>
     </div>
   </dialog>
 
-  <!-- IMPORTANT: load db.js BEFORE app.js -->
-  <script src="db.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
