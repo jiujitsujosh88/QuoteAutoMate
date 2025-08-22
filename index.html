@@ -1,83 +1,118 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QuoteAutoMate</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quote AutoMate — v1 baseline</title>
+  <meta name="theme-color" content="#0f1115"/>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root{
+      --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
+      --accent:#3aa3ff; --border:#232836;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
+
+    /* Header */
+    .app-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;
+      justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
+      backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
+    .title-wrap{display:flex;align-items:center;gap:10px;min-width:0}
+    .app-title{font-weight:700;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .badges{display:flex;align-items:center;gap:8px}
+    .net,.sw{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;opacity:.9}
+    .net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
+    .sw{color:#a9b3c9}
+
+    /* Main */
+    #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
+    .tab-pane{display:none}
+    .tab-pane.active{display:block}
+    .tab-pane::before{content:attr(aria-label);display:inline-block;font-weight:700;color:var(--muted);
+      margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;}
+    .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);}
+
+    /* Bottom Tabbar (5 + More) */
+    .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:30;display:grid;grid-template-columns:repeat(6,1fr);
+      gap:0;padding:8px;border-top:1px solid var(--border);
+      background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);}
+    .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px}
+    .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14);}
+
+    /* More dialog (native <dialog> for reliability) */
+    dialog#more-dialog{border:none;padding:0;background:transparent}
+    dialog#more-dialog::backdrop{background:rgba(0,0,0,.35)}
+    .more-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);
+      border-top-left-radius:18px;border-top-right-radius:18px;border:1px solid var(--border);
+      padding:12px;animation:slideUp .18s ease-out;}
+    @keyframes slideUp{from{transform:translateY(20px);opacity:.6}to{transform:translateY(0);opacity:1}}
+    .more-title{font-weight:700;padding:6px 4px 10px 4px;}
+    .more-item,.more-close,.more-update{width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
+      border:1px solid var(--border);border-radius:10px;padding:12px}
+    .more-close{text-align:center;background:#182034}
+    .more-update{border-style:dashed}
+
+    /* Simple settings form styles (single long scroll) */
+    .form{display:grid;gap:12px;max-width:640px}
+    .row{display:grid;gap:6px}
+    label{font-size:.9rem;color:var(--muted)}
+    input,select,button{background:#101521;color:var(--text);border:1px solid var(--border);
+      border-radius:10px;padding:10px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .note{color:var(--muted);font-size:.85rem}
+  </style>
 </head>
 <body>
-  <div id="app">
-    <header>
-      <h1>QuoteAutoMate</h1>
-      <div id="status-bar">
-        <span id="sw-status">SW: checking...</span>
-        <span id="online-status">Online</span>
-      </div>
-    </header>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="title-wrap">
+      <div class="app-title" data-i18n="app.title">Quote AutoMate</div>
+    </div>
+    <div class="badges">
+      <span id="net-status" class="net">Online</span>
+      <span id="sw-status" class="sw">SW: —</span>
+    </div>
+  </header>
 
-    <main id="main-content">
-      <!-- Tabs content goes here -->
-      <section id="tab-quote" class="tab-content active">
-        <h2>Quote</h2>
-        <p>Create new quotes here.</p>
-      </section>
-      <section id="tab-history" class="tab-content">
-        <h2>History</h2>
-        <p>Saved quotes will appear here.</p>
-      </section>
-      <section id="tab-customers" class="tab-content">
-        <h2>Customers</h2>
-        <p>Manage customer data here.</p>
-      </section>
-      <section id="tab-presets" class="tab-content">
-        <h2>Presets</h2>
-        <p>Saved templates and presets.</p>
-      </section>
-      <section id="tab-analytics" class="tab-content">
-        <h2>Analytics</h2>
-        <p>Charts and performance metrics here.</p>
-      </section>
-      <section id="tab-settings" class="tab-content">
-        <h2>Settings</h2>
-        <form id="settings-form">
-          <label>
-            Language:
-            <select id="language-select">
-              <option value="en">English</option>
-              <option value="es">Español</option>
-            </select>
-          </label>
-          <button type="submit">Save</button>
-        </form>
-        <div id="seed-controls">
-          <p>Seed demo counter: <span id="seed-count">0</span></p>
-          <button id="seed-add">Add</button>
-          <button id="seed-clear">Clear</button>
-        </div>
-      </section>
-    </main>
+  <!-- Main -->
+  <main id="tab-content">
+    <!-- Primary Tabs -->
+    <section id="tab-quotes" class="tab-pane" role="region" aria-label="Quotes"></section>
+    <section id="tab-history" class="tab-pane" role="region" aria-label="History"></section>
+    <section id="tab-customers" class="tab-pane" role="region" aria-label="Customers"></section>
+    <section id="tab-presets" class="tab-pane" role="region" aria-label="Presets"></section>
+    <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
 
-    <nav id="tab-bar">
-      <button class="tab-button active" data-tab="quote">Quote</button>
-      <button class="tab-button" data-tab="history">History</button>
-      <button class="tab-button" data-tab="customers">Customers</button>
-      <button class="tab-button" data-tab="presets">Presets</button>
-      <button class="tab-button" data-tab="analytics">Analytics</button>
-      <button class="tab-button" data-tab="settings">Settings</button>
-      <button id="more-button" class="tab-button kabob">⋮</button>
-    </nav>
+    <!-- Secondary Tabs (via More) -->
+    <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
+    <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
+    <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
+  </main>
 
-    <dialog id="more-dialog">
-      <h3>More</h3>
-      <ul>
-        <li><button id="force-update">Force Update</button></li>
-        <li><button onclick="alert('Business Info TBD')">Business Info</button></li>
-        <li><button onclick="alert('Resources TBD')">Resources</button></li>
-      </ul>
-      <button id="close-more">Close</button>
-    </dialog>
-  </div>
+  <!-- Bottom Tab Bar -->
+  <nav class="tabbar" aria-label="Bottom Tabs">
+    <button class="tab-btn" data-tab="quotes"    data-i18n="tabs.quotes">Quotes</button>
+    <button class="tab-btn" data-tab="history"   data-i18n="tabs.history">History</button>
+    <button class="tab-btn" data-tab="customers" data-i18n="tabs.customers">Customers</button>
+    <button class="tab-btn" data-tab="presets"   data-i18n="tabs.presets">Presets</button>
+    <button class="tab-btn" data-tab="analytics" data-i18n="tabs.analytics">Analytics</button>
+    <button class="tab-btn" data-tab="more"      aria-label="More">⋮</button>
+  </nav>
+
+  <!-- More dialog -->
+  <dialog id="more-dialog" aria-labelledby="more-title">
+    <div class="more-sheet">
+      <div id="more-title" class="more-title" data-i18n="more.title">More</div>
+      <button class="more-item" data-tab="settings"  data-i18n="more.settings">Settings</button>
+      <button class="more-item" data-tab="business"  data-i18n="more.business">Business Info</button>
+      <button class="more-item" data-tab="resources" data-i18n="more.resources">Resources</button>
+      <button class="more-update" id="force-update"  data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
+      <button id="more-close" class="more-close"     data-i18n="more.close">Close</button>
+    </div>
+  </dialog>
 
   <script src="app.js"></script>
 </body>
