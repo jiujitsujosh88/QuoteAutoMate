@@ -1,41 +1,46 @@
 :root{
   --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
-  --accent:#2d89ef; --border:#232836;
+  --accent:#3aa3ff; --border:#232836;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
 
-/* Header */
-.header{position:sticky;top:0;z-index:10;display:flex;align-items:center;
-  justify-content:space-between;padding:12px 16px;background:#151924;border-bottom:1px solid var(--border)}
-.brand{margin:0;font-size:20px}
-.badges{display:flex;gap:8px}
-.pill{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521}
-.pill.ok{color:#5ee17d}
-.pill.warn{color:#ff8b8b}
+.app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
+  border-bottom:1px solid var(--border);backdrop-filter:blur(8px)}
+.app-title{font-weight:700}
+.badges{display:flex;gap:8px;align-items:center}
+.net{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521}
+.net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
+.sw{font-size:.78rem;opacity:.8}
+.install-btn{font-size:.8rem;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:#132034;color:var(--text)}
 
-/* Content */
-.container{padding:16px 16px 92px 16px;min-height:calc(100vh - 56px)}
-.tab{display:none}
-.tab.active{display:block}
-.hint{color:var(--muted)}
+#tab-content{padding:16px;padding-bottom:92px;min-height:calc(100dvh - 120px)}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+.tab-pane::before{content:attr(aria-label);display:inline-block;font-weight:700;color:var(--muted);
+  margin-bottom:8px;padding:6px 10px;border:1px solid var(--border);border-radius:8px}
+.placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted)}
 
-/* Bottom Tabbar */
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;
-  grid-template-columns:repeat(6,1fr);gap:0;padding:8px;border-top:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(15,17,21,.9),rgba(15,17,21,.98))}
-.tab-btn{border:none;background:transparent;color:var(--muted);padding:10px 6px;border-radius:10px;font-weight:600}
-.tab-btn.active{color:var(--text);background:rgba(45,137,239,.18)}
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;
+  display:flex;justify-content:space-between;gap:6px;padding:8px 10px;border-top:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter:blur(8px)}
+.tab-btn{flex:1 1 0%;min-width:0;background:transparent;color:var(--muted);
+  border:none;padding:10px 4px;border-radius:10px;font-weight:600;letter-spacing:.2px;
+  font-size:13px;line-height:1.1;white-space:nowrap}
+.tab-btn.active{color:var(--text);background:rgba(58,163,255,.14)}
+@media (max-width:380px){.tab-btn{font-size:12px}}
 
-/* More sheet (dialog) */
-.sheet{border:none;padding:0;background:transparent}
-.sheet::backdrop{background:rgba(0,0,0,.35)}
-.sheet-head{display:flex;justify-content:space-between;align-items:center;
-  background:var(--card);padding:12px 14px;border-top-left-radius:16px;border-top-right-radius:16px;border:1px solid var(--border);border-bottom:none}
-.sheet-body{background:var(--card);border:1px solid var(--border);border-top:none;border-bottom-left-radius:16px;border-bottom-right-radius:16px;padding:10px}
-.icon-btn{background:#101521;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px}
-.sheet-item{display:block;width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
+dialog#more-dialog{border:none;padding:0;background:transparent}
+dialog#more-dialog::backdrop{background:rgba(0,0,0,.35)}
+.sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);
+  border-top-left-radius:18px;border-top-right-radius:18px;border:1px solid var(--border);
+  padding:12px;animation:slideUp .18s ease-out}
+@keyframes slideUp{from{transform:translateY(20px);opacity:.6}to{transform:translateY(0);opacity:1}}
+.sheet h3{margin:4px 4px 8px 4px}
+.sheet-item{width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
   border:1px solid var(--border);border-radius:10px;padding:12px}
+.sheet-item.primary{text-align:center;background:#182034}
 .sheet-item.outline{border-style:dashed}
