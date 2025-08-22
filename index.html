@@ -1,53 +1,57 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Quote AutoMate</title>
-  <meta name="theme-color" content="#0f1115"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quote AutoMate – Skeleton</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
+  <meta name="theme-color" content="#0f1115"/>
 </head>
 <body>
+  <!-- Header -->
   <header class="app-header">
-    <div class="app-title">Quote AutoMate</div>
+    <div class="app-title" data-i18n="app.title">Quote AutoMate</div>
     <div class="badges">
       <span id="net-status" class="net">Online</span>
       <span id="sw-status" class="sw">SW: —</span>
-      <button id="install-btn" class="install-btn" hidden>Install</button>
     </div>
   </header>
 
+  <!-- Main -->
   <main id="tab-content">
-    <section id="tab-quotes" class="tab-pane" aria-label="Quotes"></section>
-    <section id="tab-history" class="tab-pane" aria-label="History"></section>
-    <section id="tab-customers" class="tab-pane" aria-label="Customers"></section>
-    <section id="tab-presets" class="tab-pane" aria-label="Presets"></section>
-    <section id="tab-analytics" class="tab-pane" aria-label="Analytics"></section>
+    <!-- Primary Tabs -->
+    <section id="tab-quotes" class="tab-pane" role="region" aria-label="Quotes"></section>
+    <section id="tab-history" class="tab-pane" role="region" aria-label="History"></section>
+    <section id="tab-customers" class="tab-pane" role="region" aria-label="Customers"></section>
+    <section id="tab-presets" class="tab-pane" role="region" aria-label="Presets"></section>
+    <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
 
-    <section id="tab-settings" class="tab-pane" aria-label="Settings" hidden></section>
-    <section id="tab-business" class="tab-pane" aria-label="Business Info" hidden></section>
-    <section id="tab-resources" class="tab-pane" aria-label="Resources" hidden></section>
+    <!-- Secondary Tabs (More) -->
+    <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
+    <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
+    <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
   </main>
 
+  <!-- Bottom Tab Bar -->
   <nav class="tabbar" aria-label="Bottom Tabs">
-    <button class="tab-btn" data-tab="quotes">Quotes</button>
-    <button class="tab-btn" data-tab="history">History</button>
-    <button class="tab-btn" data-tab="customers">Customers</button>
-    <button class="tab-btn" data-tab="presets">Presets</button>
-    <button class="tab-btn" data-tab="analytics">Analytics</button>
-    <button class="tab-btn" data-tab="more">More</button>
+    <button class="tab-btn" data-tab="quotes" data-i18n="tabs.quotes">Quotes</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tabs.history">History</button>
+    <button class="tab-btn" data-tab="customers" data-i18n="tabs.customers">Customers</button>
+    <button class="tab-btn" data-tab="presets" data-i18n="tabs.presets">Presets</button>
+    <button class="tab-btn" data-tab="analytics" data-i18n="tabs.analytics">Analytics</button>
+    <button class="tab-btn" data-tab="more" data-i18n="tabs.more">More</button>
   </nav>
 
-  <!-- More dialog is bullet-proof and works even if JS reloads -->
-  <dialog id="more-dialog">
+  <!-- More dialog -->
+  <dialog id="more-dialog" aria-labelledby="more-title">
     <div class="sheet">
-      <h3>More</h3>
-      <button class="sheet-item" data-tab="settings">Settings</button>
-      <button class="sheet-item" data-tab="business">Business Info</button>
-      <button class="sheet-item" data-tab="resources">Resources</button>
-      <button id="force-update" class="sheet-item outline">Force Update (clear cache)</button>
-      <button id="more-close" class="sheet-item primary">Close</button>
+      <h3 id="more-title" data-i18n="more.title">More</h3>
+      <button class="sheet-item" data-tab="settings" data-i18n="more.settings">Settings</button>
+      <button class="sheet-item" data-tab="business" data-i18n="more.business">Business Info</button>
+      <button class="sheet-item" data-tab="resources" data-i18n="more.resources">Resources</button>
+      <button class="sheet-item outline" id="force-update" data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
+      <button id="more-close" class="sheet-item primary" data-i18n="more.close">Close</button>
     </div>
   </dialog>
 
