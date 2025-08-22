@@ -1,5 +1,5 @@
-/* Quote AutoMate SW — v1.0.0-baseline */
-const CACHE_VERSION = 'qam-v1.0.0-baseline';
+/* Quote AutoMate SW — v1.0.1 */
+const CACHE_VERSION = 'qam-v1.0.1';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -29,17 +29,14 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   event.respondWith((async ()=>{
-    // Try cache first
     const cached = await caches.match(req);
     if (cached) return cached;
-    // Then network, and cache opportunistically
     try{
       const fresh = await fetch(req);
       const cache = await caches.open(CACHE_VERSION);
       cache.put(req, fresh.clone());
       return fresh;
     }catch(_){
-      // If offline and request is for root, serve index
       if (req.mode === 'navigate') {
         const index = await caches.match('./index.html');
         if (index) return index;
@@ -49,7 +46,6 @@ self.addEventListener('fetch', (event) => {
   })());
 });
 
-// Handle manual cache-bust
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
