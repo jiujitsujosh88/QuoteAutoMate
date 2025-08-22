@@ -1,7 +1,6 @@
 (() => {
-  // ---------- App state ----------
   const App = {
-    version: '0.3.2-fixes',
+    version: '0.3.3-fixes-settings',
     plan: 'pro',
     role: 'sa',
     lang: 'en',
@@ -12,7 +11,6 @@
     })); }catch(_){} }
   };
 
-  // ---------- i18n ----------
   const STRINGS = {
     en:{'app.title':'Quote AutoMate',
       'tabs.quotes':'Quotes','tabs.history':'History','tabs.customers':'Customers','tabs.presets':'Presets','tabs.analytics':'Analytics','tabs.more':'More',
@@ -49,14 +47,12 @@
     });
   }
 
-  // ---------- Format helpers ----------
   const fmt = {
     money(v){ try{ return new Intl.NumberFormat(App.currency.locale,{style:'currency',currency:App.currency.code,maximumFractionDigits:2}).format(v||0);}catch(_){return `${App.currency.symbol}${(v||0).toFixed(2)}`}},
     number(v){ try{ return new Intl.NumberFormat(App.currency.locale).format(v||0);}catch(_){return String(v??0)}},
     date(d){ try{ const dt=d instanceof Date?d:new Date(d); return new Intl.DateTimeFormat(App.currency.locale,{year:'numeric',month:'short',day:'2-digit'}).format(dt);}catch(_){return String(d)}}
   };
 
-  // ---------- DB + migrations (unchanged) ----------
   const DB_NAME='QAM_DB', DB_VERSION=3;
   const MIGRATIONS={
     1(db){ const q=db.createObjectStore('quotes',{keyPath:'id'}); q.createIndex('by_customer','customerId'); q.createIndex('by_date','createdAt');
@@ -65,7 +61,7 @@
            const p=db.createObjectStore('presets',{keyPath:'id'}); p.createIndex('by_name','name');
            db.createObjectStore('meta',{keyPath:'key'}); },
     2(db){ const q=db.objectStore('quotes'); if (![...q.indexNames].includes('by_status')) q.createIndex('by_status','status'); },
-    3(_db){ /* placeholder for future */ }
+    3(_db){ }
   };
   function openDB(){ return new Promise((res,rej)=>{ const req=indexedDB.open(DB_NAME,DB_VERSION);
     req.onupgradeneeded=(e)=>{ const db=req.result; const old=e.oldVersion||0; for(let v=old+1; v<=DB_VERSION; v++){ const step=MIGRATIONS[v]; if(typeof step==='function') step(db);} };
@@ -91,12 +87,10 @@
 
   window.QAM = { App, t, fmt, DB };
 
-  // ---------- net + SW badge ----------
   function setOnlineStatus(){ const el=document.getElementById('net-status'); if(!el) return; const on=navigator.onLine; el.textContent=on?'Online':'Offline'; el.classList.toggle('online',on); el.classList.toggle('offline',!on);}
   function initNet(){ setOnlineStatus(); addEventListener('online',setOnlineStatus); addEventListener('offline',setOnlineStatus); }
   function setSWBadge(s){ const el=document.getElementById('sw-status'); if(el) el.textContent=`SW: ${s}`; }
 
-  // ---------- tabs + more ----------
   const $=(s,r=document)=>r.querySelector(s);
   const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
   function showTab(tab){
@@ -105,8 +99,7 @@
     $$('.tab-btn').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
     try{ localStorage.setItem('QAM_lastTab',tab); }catch(_){}
     closeMore();
-    // ensure settings is mounted every time you visit it
-    if (tab==='settings') mountSettings(/*forceIfEmpty*/true);
+    if (tab==='settings') mountSettings(true); // ensure visible each time
   }
   function openMore(){ const d=$('#more-dialog'); if(d && !d.open) d.showModal(); }
   function closeMore(){ const d=$('#more-dialog'); if(d && d.open) d.close(); }
@@ -125,7 +118,6 @@
     let last='quotes'; try{ const s=localStorage.getItem('QAM_lastTab'); if(s) last=s;}catch(_){}; showTab(last);
   }
 
-  // ---------- force update ----------
   async function forceUpdate(){
     try{
       if('caches' in window){ const keys=await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
@@ -133,15 +125,15 @@
     }catch(_){}
     location.reload();
   }
-  function initForceUpdate(){ $('#force-update')?.addEventListener('click', forceUpdate); }
+  function initForceUpdate(){ document.getElementById('force-update')?.addEventListener('click', forceUpdate); }
 
-  // ---------- settings (with re-mount guard) ----------
-  function mountSettings(forceIfEmpty=false){
+  // FIXED: render guard that lets us replace placeholder-only content
+  function mountSettings(force=false){
     const el = document.getElementById('tab-settings'); if (!el) return;
 
-    // If content was cleared for any reason, allow re-render
-    if (el.dataset.mounted && !forceIfEmpty) return;
-    if (forceIfEmpty && el.innerHTML.trim().length>0){ /* already there */ return; }
+    const hasOnlyPlaceholder = el.children.length === 1 && el.querySelector('.placeholder');
+    if (!force && el.dataset.mounted) return;
+    if (force && el.innerHTML.trim().length>0 && !hasOnlyPlaceholder) return;
 
     el.dataset.mounted = '1';
     el.innerHTML = `
@@ -172,7 +164,7 @@
         </div>
         <div style="margin-top:12px"><strong>Data (dev only)</strong>
           <button id="seedBtn" type="button">Seed demo data</button>
-          <button id="wipeBtn" type="button" style="background:#6b1f28">Wipe all data</button>
+          <button id="wipeBtn"  type="button" style="background:#6b1f28">Wipe all data</button>
           <div id="countsLine" style="margin-top:6px"></div>
         </div>
       </div>
@@ -190,7 +182,6 @@
       if (role) App.role = role;
       App.save();
       applyI18n();
-      // keep settings visible after save
       mountSettings(true);
       updateCounts();
     });
@@ -199,7 +190,6 @@
       await DB.seed(2);
       updateCounts();
     });
-
     el.querySelector('#wipeBtn').addEventListener('click', async ()=>{
       await DB.clearAll();
       updateCounts();
@@ -213,19 +203,17 @@
     updateCounts();
   }
 
-  // ---------- boot ----------
   document.addEventListener('DOMContentLoaded', async ()=>{
     App.load();
     applyI18n();
     initNet();
     initTabs();
     initForceUpdate();
-    mountSettings(true); // ensure present on first show
+    mountSettings(true);
     App.save();
     try{ await DB.init(); }catch(_){}
   });
 
-  // ---------- SW ----------
   if ('serviceWorker' in navigator){
     window.addEventListener('load', async ()=>{
       try{
