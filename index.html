@@ -3,13 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Quote AutoMate — v1.0.1</title>
-  <meta name="theme-color" content="#0f1115"/>
+  <title>Quote AutoMate – Skeleton</title>
   <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1115"/>
+
   <style>
     :root{
       --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
-      --accent:#3aa3ff; --border:#232836;
+      --accent:#3aa3ff; --border:#232836; --ok:#35d07f; --warn:#ffcc66; --err:#ff7b7b;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -17,18 +18,14 @@
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;}
 
     /* Header */
-    .app-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;
+    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;
       justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
       backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
-    .title-wrap{display:flex;align-items:center;gap:10px;min-width:0}
-    .app-title{font-weight:700;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .badges{display:flex;align-items:center;gap:8px}
-    .net,.sw,.dev{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;opacity:.9}
-    .net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
-    .sw{color:#a9b3c9}
-    .dev{color:#b0e1ff}
-    .install-btn{font-size:.78rem;padding:4px 10px;border-radius:10px;border:1px solid var(--border);
-      background:#182034;color:var(--text);display:none}
+    .app-title{font-weight:700;letter-spacing:.2px}
+    .badges{display:flex;gap:8px;align-items:center}
+    .chip{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;}
+    .online{color:#5ee17d}.offline{color:#ff8b8b}
+    .sw-badge{opacity:.85}
 
     /* Main */
     #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
@@ -38,19 +35,19 @@
       margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;}
     .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);}
 
-    /* Bottom Tabbar (5 + More) */
-    .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:30;display:grid;grid-template-columns:repeat(6,1fr);
+    /* Bottom Tabbar (5 + kebab) */
+    .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);
       gap:0;padding:8px;border-top:1px solid var(--border);
       background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);}
     .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px}
     .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14);}
+    .tab-btn.kebab{font-size:18px;line-height:1;padding:10px 0}
 
-    /* More dialog */
+    /* More dialog (native <dialog>) */
     dialog#more-dialog{border:none;padding:0;background:transparent}
     dialog#more-dialog::backdrop{background:rgba(0,0,0,.35)}
-    .more-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);
-      border-top-left-radius:18px;border-top-right-radius:18px;border:1px solid var(--border);
-      padding:12px;animation:slideUp .18s ease-out;}
+    .more-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top-left-radius:18px;border-top-right-radius:18px;
+      border:1px solid var(--border);padding:12px;animation:slideUp .18s ease-out;}
     @keyframes slideUp{from{transform:translateY(20px);opacity:.6}to{transform:translateY(0);opacity:1}}
     .more-title{font-weight:700;padding:6px 4px 10px 4px;}
     .more-item,.more-close,.more-update{width:100%;text-align:left;margin:6px 0;background:#101521;color:var(--text);
@@ -58,33 +55,40 @@
     .more-close{text-align:center;background:#182034}
     .more-update{border-style:dashed}
 
-    /* Simple settings form styles */
-    .form{display:grid;gap:12px;max-width:640px}
-    .row{display:grid;gap:6px}
-    label{font-size:.9rem;color:var(--muted)}
-    input,select,button{background:#101521;color:var(--text);border:1px solid var(--border);
-      border-radius:10px;padding:10px}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    .note{color:var(--muted);font-size:.85rem}
-    .seedline{display:flex;align-items:center;gap:10px}
-    .seedpill{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;color:#b0e1ff}
+    /* Toasts */
+    .toast-wrap{position:fixed;left:0;right:0;bottom:74px;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:50;pointer-events:none}
+    .toast{pointer-events:auto;min-width:200px;max-width:90vw;background:#101521;border:1px solid var(--border);color:var(--text);
+      padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;gap:10px;align-items:center;animation:toastIn .18s ease-out}
+    .toast.ok{border-color:rgba(53,208,127,.4)} .dot.ok{background:var(--ok)}
+    .toast.warn{border-color:rgba(255,204,102,.4)} .dot.warn{background:var(--warn)}
+    .toast.err{border-color:rgba(255,123,123,.4)} .dot.err{background:var(--err)}
+    .dot{width:10px;height:10px;border-radius:999px;flex:0 0 auto;opacity:.9}
+    .toast-msg{flex:1}
+    .toast-close{background:transparent;border:none;color:var(--muted);font-weight:700}
+    @keyframes toastIn{from{transform:translateY(8px);opacity:.6}to{transform:translateY(0);opacity:1}}
+
+    /* Confirm dialog */
+    dialog#confirm-dialog{border:none;padding:0;background:transparent}
+    dialog#confirm-dialog::backdrop{background:rgba(0,0,0,.35)}
+    .confirm-card{margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:12px;max-width:420px}
+    .confirm-body{padding:14px 14px 6px 14px}
+    .confirm-actions{display:flex;gap:10px;padding:10px 14px 14px 14px}
+    .btn{background:#101521;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+    .btn.primary{background:#182034;border-color:#2a3450}
+    .btn.danger{border-color:rgba(255,123,123,.5)}
   </style>
 </head>
 <body>
   <!-- Header -->
   <header class="app-header">
-    <div class="title-wrap">
-      <div class="app-title" data-i18n="app.title">Quote AutoMate</div>
-    </div>
+    <div class="app-title" data-i18n="app.title">Quote AutoMate</div>
     <div class="badges">
-      <button id="installBtn" class="install-btn">Install</button>
-      <span id="dev-badge" class="dev" style="display:none">Seed: 0</span>
-      <span id="net-status" class="net">Online</span>
-      <span id="sw-status" class="sw">SW: —</span>
+      <span id="net-status" class="chip">Online</span>
+      <span id="sw-status" class="chip sw-badge">SW: —</span>
     </div>
   </header>
 
-  <!-- Main -->
+  <!-- Main content -->
   <main id="tab-content">
     <!-- Primary Tabs -->
     <section id="tab-quotes" class="tab-pane" role="region" aria-label="Quotes"></section>
@@ -101,24 +105,40 @@
 
   <!-- Bottom Tab Bar -->
   <nav class="tabbar" aria-label="Bottom Tabs">
-    <button class="tab-btn" data-tab="quotes"    data-i18n="tabs.quotes">Quotes</button>
-    <button class="tab-btn" data-tab="history"   data-i18n="tabs.history">History</button>
+    <button class="tab-btn" data-tab="quotes" data-i18n="tabs.quotes">Quotes</button>
+    <button class="tab-btn" data-tab="history" data-i18n="tabs.history">History</button>
     <button class="tab-btn" data-tab="customers" data-i18n="tabs.customers">Customers</button>
-    <button class="tab-btn" data-tab="presets"   data-i18n="tabs.presets">Presets</button>
+    <button class="tab-btn" data-tab="presets" data-i18n="tabs.presets">Presets</button>
     <button class="tab-btn" data-tab="analytics" data-i18n="tabs.analytics">Analytics</button>
-    <button class="tab-btn" data-tab="more"      aria-label="More">⋮</button>
+    <button class="tab-btn kebab" data-tab="more" aria-label="More" title="More">⋮</button>
   </nav>
 
   <!-- More dialog -->
   <dialog id="more-dialog" aria-labelledby="more-title">
     <div class="more-sheet">
       <div id="more-title" class="more-title" data-i18n="more.title">More</div>
-      <button class="more-item" data-tab="settings"  data-i18n="more.settings">Settings</button>
-      <button class="more-item" data-tab="business"  data-i18n="more.business">Business Info</button>
+      <button class="more-item" data-tab="settings" data-i18n="more.settings">Settings</button>
+      <button class="more-item" data-tab="business" data-i18n="more.business">Business Info</button>
       <button class="more-item" data-tab="resources" data-i18n="more.resources">Resources</button>
-      <button id="installBtnMore" class="more-item">Install</button>
-      <button class="more-update" id="force-update"  data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
-      <button id="more-close" class="more-close"     data-i18n="more.close">Close</button>
+      <button class="more-update" id="force-update" data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
+      <button id="more-close" class="more-close" data-i18n="more.close">Close</button>
+    </div>
+  </dialog>
+
+  <!-- Toast container -->
+  <div id="toast-wrap" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Confirm dialog -->
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title">
+    <div class="confirm-card">
+      <div class="confirm-body">
+        <div id="confirm-title" class="app-title" style="margin-bottom:8px">Please confirm</div>
+        <div id="confirm-message" class="muted"></div>
+      </div>
+      <div class="confirm-actions">
+        <button id="confirm-cancel" class="btn">Cancel</button>
+        <button id="confirm-ok" class="btn primary">OK</button>
+      </div>
     </div>
   </dialog>
 
