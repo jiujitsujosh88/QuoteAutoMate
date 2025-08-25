@@ -1,13 +1,14 @@
-(()=> {
+(() => {
   // -----------------------------
-  // App State
+  // Minimal App State
   // -----------------------------
   const App = {
-    version: '1.0.1-baseline',
-    plan: 'lite',
-    role: 'tech',
-    lang: 'en',
-    currency: { code:'USD', symbol:'$', locale:'en-US' },
+    version: '1.0.0-step1-toasts',
+    plan: 'lite',              // 'lite' | 'pro' (dev toggle only)
+    role: 'tech',              // 'tech' | 'sa' | 'owner'
+    lang: 'en',                // 'en' | 'es' (sample)
+    currency: { code: 'USD', symbol: '$', locale: 'en-US' },
+
     load(){
       try {
         const raw = localStorage.getItem('QAM_STATE');
@@ -17,56 +18,102 @@
     save(){
       try {
         localStorage.setItem('QAM_STATE', JSON.stringify({
-          version:this.version, plan:this.plan, role:this.role, lang:this.lang, currency:this.currency
+          version:this.version, plan:this.plan, role:this.role,
+          lang:this.lang, currency:this.currency
         }));
+      } catch(_) {}
+    },
+    clearAll(){
+      try {
+        localStorage.clear();
       } catch(_) {}
     }
   };
 
+  // Expose for console testing
+  window.QAM = window.QAM || {};
+  window.QAM.App = App;
+
   // -----------------------------
-  // i18n
+  // i18n (simple)
   // -----------------------------
   const STRINGS = {
     en: {
       'app.title': 'Quote AutoMate',
-      'tabs.quotes':'Quotes','tabs.history':'History','tabs.customers':'Customers','tabs.presets':'Presets','tabs.analytics':'Analytics',
-      'more.title':'More','more.settings':'Settings','more.business':'Business Info','more.resources':'Resources','more.forceUpdate':'Force Update (clear cache & reload)','more.close':'Close',
-      'ph.quotes':'Start your quote flow here.',
-      'ph.history':'Recent quotes. (Later: quick-add from prior tickets.)',
-      'ph.customers':'Customer list & quick search.',
-      'ph.presets':'Your saved presets will appear here.',
-      'ph.analytics':'KPIs & date-range reports.',
-      'ph.settings':'Language, currency, role.',
-      'ph.business':'Business name, logo, contact, financial defaults.',
-      'ph.resources':'Employees, sublets, suppliers.',
+      'tabs.quotes': 'Quotes',
+      'tabs.history': 'History',
+      'tabs.customers': 'Customers',
+      'tabs.presets': 'Presets',
+      'tabs.analytics': 'Analytics',
+      'tabs.more': 'More',
 
-      'set.lang':'Language','set.plan':'Plan','set.role':'Role','set.currency':'Currency (read-only for now)',
-      'set.save':'Save','set.seed':'Seed demo data (+2)','set.clear':'Clear data'
+      'more.title': 'More',
+      'more.settings': 'Settings',
+      'more.business': 'Business Info',
+      'more.resources': 'Resources',
+      'more.forceUpdate': 'Force Update (clear cache & reload)',
+      'more.close': 'Close',
+
+      'ph.quotes': 'Start your quote flow here.',
+      'ph.history': 'Recent quotes. (Later: quick-add from prior tickets.)',
+      'ph.customers': 'Customer list & quick search.',
+      'ph.presets': 'Your saved presets will appear here.',
+      'ph.analytics': 'KPIs & date-range reports.',
+      'ph.settings': 'Language, currency, role.',
+      'ph.business': 'Business name, logo, contact, financial defaults.',
+      'ph.resources': 'Employees, sublets, suppliers.',
+
+      // toasts / confirm
+      'toast.saved': 'Saved',
+      'toast.cleared': 'Cleared',
+      'toast.error': 'Something went wrong',
+      'confirm.title': 'Please confirm',
+      'confirm.clear': 'This will erase local data. Continue?'
     },
     es: {
       'app.title': 'Quote AutoMate',
-      'tabs.quotes':'Cotizaciones','tabs.history':'Historial','tabs.customers':'Clientes','tabs.presets':'Preajustes','tabs.analytics':'Análisis',
-      'more.title':'Más','more.settings':'Ajustes','more.business':'Información del negocio','more.resources':'Recursos','more.forceUpdate':'Forzar actualización (borrar caché y recargar)','more.close':'Cerrar',
-      'ph.quotes':'Comienza tu flujo de cotización aquí.',
-      'ph.history':'Cotizaciones recientes. (Después: añadir rápido desde tickets previos.)',
-      'ph.customers':'Lista de clientes y búsqueda rápida.',
-      'ph.presets':'Tus preajustes aparecerán aquí.',
-      'ph.analytics':'KPIs e informes por rango de fechas.',
-      'ph.settings':'Idioma, moneda, rol.',
-      'ph.business':'Nombre del negocio, logo, contacto y valores por defecto.',
-      'ph.resources':'Empleados, subcontratos, proveedores.',
+      'tabs.quotes': 'Cotizaciones',
+      'tabs.history': 'Historial',
+      'tabs.customers': 'Clientes',
+      'tabs.presets': 'Preajustes',
+      'tabs.analytics': 'Análisis',
+      'tabs.more': 'Más',
 
-      'set.lang':'Idioma','set.plan':'Plan','set.role':'Rol','set.currency':'Moneda (solo lectura por ahora)',
-      'set.save':'Guardar','set.seed':'Sembrar datos demo (+2)','set.clear':'Borrar datos'
+      'more.title': 'Más',
+      'more.settings': 'Ajustes',
+      'more.business': 'Información del negocio',
+      'more.resources': 'Recursos',
+      'more.forceUpdate': 'Forzar actualización (borrar caché y recargar)',
+      'more.close': 'Cerrar',
+
+      'ph.quotes': 'Comienza tu flujo de cotización aquí.',
+      'ph.history': 'Cotizaciones recientes. (Después: añadir rápido desde tickets previos.)',
+      'ph.customers': 'Lista de clientes y búsqueda rápida.',
+      'ph.presets': 'Tus preajustes aparecerán aquí.',
+      'ph.analytics': 'KPIs e informes por rango de fechas.',
+      'ph.settings': 'Idioma, moneda, rol.',
+      'ph.business': 'Nombre del negocio, logo, contacto y valores por defecto.',
+      'ph.resources': 'Empleados, subcontratos, proveedores.',
+
+      'toast.saved': 'Guardado',
+      'toast.cleared': 'Borrado',
+      'toast.error': 'Algo salió mal',
+      'confirm.title': 'Confirma por favor',
+      'confirm.clear': 'Esto borrará los datos locales. ¿Continuar?'
     }
   };
-  const t = (k)=> (STRINGS[App.lang]&&STRINGS[App.lang][k]) || STRINGS.en[k] || k;
+  const t = (key) => {
+    const dict = STRINGS[App.lang] || STRINGS.en;
+    return dict[key] || STRINGS.en[key] || key;
+  };
+  window.QAM.t = t;
 
   function applyI18n(){
     document.querySelectorAll('[data-i18n]').forEach(el=>{
       const k = el.getAttribute('data-i18n');
       el.textContent = t(k);
     });
+
     const ariaMap = {
       'tab-quotes':'tabs.quotes','tab-history':'tabs.history','tab-customers':'tabs.customers',
       'tab-presets':'tabs.presets','tab-analytics':'tabs.analytics',
@@ -76,189 +123,149 @@
       const el = document.getElementById(id);
       if (el) el.setAttribute('aria-label', t(key));
     });
-    const ph = {
-      quotes:'ph.quotes',history:'ph.history',customers:'ph.customers',presets:'ph.presets',analytics:'ph.analytics',
-      settings:'ph.settings',business:'ph.business',resources:'ph.resources'
+
+    // header title
+    const title = document.querySelector('.app-title');
+    if (title) title.textContent = t('app.title');
+  }
+
+  // -----------------------------
+  // Toasts
+  // -----------------------------
+  function showToast(message, kind='ok', ms=2200){
+    const wrap = document.getElementById('toast-wrap');
+    if (!wrap) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${kind}`;
+    toast.innerHTML = `
+      <span class="dot ${kind}"></span>
+      <span class="toast-msg">${message}</span>
+      <button class="toast-close" aria-label="Close">×</button>
+    `;
+    const close = () => {
+      toast.remove();
     };
-    Object.entries(ph).forEach(([pane, key])=>{
-      const el = document.querySelector('#tab-'+pane);
-      if (el && !el.dataset.phMounted){
-        const d=document.createElement('div'); d.className='placeholder'; d.textContent=t(key);
-        el.appendChild(d); el.dataset.phMounted='1';
-      } else if (el){
-        const p=el.querySelector('.placeholder'); if (p) p.textContent=t(key);
+    toast.querySelector('.toast-close').addEventListener('click', close);
+    wrap.appendChild(toast);
+    if (ms > 0) setTimeout(close, ms);
+  }
+  window.QAM.toast = showToast;
+
+  // -----------------------------
+  // Confirm dialog (Promise-based)
+  // -----------------------------
+  function confirmDialog(message, opts={}){
+    return new Promise((resolve)=>{
+      const dlg = document.getElementById('confirm-dialog');
+      const msg = document.getElementById('confirm-message');
+      const title = document.getElementById('confirm-title');
+      const ok = document.getElementById('confirm-ok');
+      const cancel = document.getElementById('confirm-cancel');
+      if (!dlg) return resolve(false);
+
+      title.textContent = t('confirm.title');
+      msg.textContent = message;
+
+      const onCancel = () => { cleanup(); resolve(false); };
+      const onOk = () => { cleanup(); resolve(true); };
+
+      function cleanup(){
+        cancel.removeEventListener('click', onCancel);
+        ok.removeEventListener('click', onOk);
+        if (dlg.open) dlg.close();
       }
+
+      cancel.addEventListener('click', onCancel);
+      ok.addEventListener('click', onOk);
+
+      dlg.showModal();
     });
   }
+  window.QAM.confirm = confirmDialog;
 
   // -----------------------------
   // Helpers
   // -----------------------------
-  const $ = (sel, root=document)=> root.querySelector(sel);
-  const $$ = (sel, root=document)=> Array.from(root.querySelectorAll(sel));
-  const fmt = {
-    money(v){ try {return new Intl.NumberFormat(App.currency.locale,{style:'currency',currency:App.currency.code}).format(v||0);} catch(_){return `${App.currency.symbol}${(v||0).toFixed(2)}`;} }
-  };
-  window.QAM = { App, t, fmt };
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const $all = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  function setOnlineStatus(){
+    const el = $('#net-status'); if(!el) return;
+    const online = navigator.onLine;
+    el.textContent = online ? 'Online' : 'Offline';
+    el.classList.toggle('online', online);
+    el.classList.toggle('offline', !online);
+  }
+  function initNet(){
+    setOnlineStatus();
+    addEventListener('online', setOnlineStatus);
+    addEventListener('offline', setOnlineStatus);
+  }
+  function setSWBadge(text){
+    const el = $('#sw-status'); if (el) el.textContent = `SW: ${text}`;
+  }
 
   // -----------------------------
   // Tabs + More
   // -----------------------------
   function showTab(tab){
-    $$('.tab-pane').forEach(p=>{p.classList.remove('active');p.hidden=true;});
-    const pane = $('#tab-'+tab); if (pane){ pane.hidden=false; pane.classList.add('active'); }
-    $$('.tab-btn').forEach(btn=>btn.classList.toggle('active', btn.dataset.tab===tab));
-    try{ localStorage.setItem('QAM_lastTab', tab);}catch(_){}
+    $all('.tab-pane').forEach(p => { p.classList.remove('active'); p.hidden = true; });
+    const pane = $('#tab-' + tab);
+    if (pane){ pane.hidden = false; pane.classList.add('active'); }
+    $all('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+    try { localStorage.setItem('QAM_lastTab', tab); } catch(_) {}
     closeMore();
   }
-  function openMore(){ const d=$('#more-dialog'); if(d && !d.open) d.showModal(); }
-  function closeMore(){ const d=$('#more-dialog'); if(d && d.open) d.close(); }
+  function openMore(){ const dlg = $('#more-dialog'); if (dlg && !dlg.open) dlg.showModal(); }
+  function closeMore(){ const dlg = $('#more-dialog'); if (dlg && dlg.open) dlg.close(); }
 
   function initTabs(){
-    $$('.tab-btn').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const tab = btn.dataset.tab;
-        if (tab==='more'){ openMore(); return; }
-        showTab(tab);
+    $all('.tab-btn').forEach(btn=>{
+      btn.addEventListener('click', () => {
+        const ttab = btn.dataset.tab;
+        if (ttab === 'more'){ openMore(); return; }
+        showTab(ttab);
       }, {passive:true});
     });
     $('#more-close')?.addEventListener('click', closeMore);
-    $$('.more-item').forEach(item=>{
-      item.addEventListener('click',(e)=>{ e.preventDefault(); const tab=item.dataset.tab; if(tab) showTab(tab); });
+    $all('.more-item').forEach(item=>{
+      item.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const ttab = item.dataset.tab;
+        if (ttab){ showTab(ttab); }
+      });
     });
-    let last='quotes'; try{ const saved=localStorage.getItem('QAM_lastTab'); if (saved) last=saved; }catch(_){}
+
+    let last = 'quotes';
+    try { const saved = localStorage.getItem('QAM_lastTab'); if (saved) last = saved; } catch(_) {}
     showTab(last);
   }
 
   // -----------------------------
-  // Network + SW badges
+  // Placeholders (unchanged)
   // -----------------------------
-  function setOnlineStatus(){
-    const el=$('#net-status'); if(!el) return;
-    const online = navigator.onLine;
-    el.textContent = online ? 'Online':'Offline';
-    el.classList.toggle('online', online);
-    el.classList.toggle('offline', !online);
-  }
-  function setSWBadge(txt){ const el=$('#sw-status'); if(el) el.textContent = `SW: ${txt}`; }
-
-  // -----------------------------
-  // Install (reliable prompt)
-  // -----------------------------
-  let deferredPrompt = null;
-  function updateInstallButtons(visible){
-    const b1 = $('#installBtn'); const b2 = $('#installBtnMore');
-    [b1,b2].forEach(b=>{ if(!b) return; b.style.display = visible ? 'inline-block' : 'none'; });
-  }
-  window.addEventListener('beforeinstallprompt', (e)=>{
-    e.preventDefault();
-    deferredPrompt = e;
-    updateInstallButtons(true);
-  });
-  async function doInstall(){
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    updateInstallButtons(false);
-    // optional: alert(outcome);
-  }
-  function initInstallUI(){
-    $('#installBtn')?.addEventListener('click', doInstall);
-    $('#installBtnMore')?.addEventListener('click', doInstall);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isStandalone) updateInstallButtons(false);
-  }
-
-  // -----------------------------
-  // Settings (single long scroll)
-  // -----------------------------
-  function refreshSeedUI(){
-    const n = Number(localStorage.getItem('QAM_SEED')||'0');
-    const dev = $('#dev-badge');
-    if (dev){ dev.style.display='inline-block'; dev.textContent = `Seed: ${n}`; }
-    const pill = $('#seedCount'); if (pill) pill.textContent = n;
-  }
-
-  function mountSettings(){
-    const host = $('#tab-settings'); if(!host || host.dataset.mounted) return;
-    host.dataset.mounted='1';
-
-    const wrap = document.createElement('div');
-    wrap.className='form';
-    wrap.innerHTML = `
-      <div class="row">
-        <label for="langSel" data-i18n="set.lang">Language</label>
-        <select id="langSel">
-          <option value="en">English</option>
-          <option value="es">Español</option>
-        </select>
-      </div>
-      <div class="row">
-        <label for="planSel" data-i18n="set.plan">Plan</label>
-        <select id="planSel">
-          <option value="lite">Lite</option>
-          <option value="pro">Pro</option>
-        </select>
-        <div class="note">Dev toggle only (will be license-gated in production).</div>
-      </div>
-      <div class="row">
-        <label for="roleSel" data-i18n="set.role">Role</label>
-        <select id="roleSel">
-          <option value="tech">Technician</option>
-          <option value="sa">Service Advisor</option>
-          <option value="owner">Owner</option>
-        </select>
-      </div>
-      <div class="row">
-        <label data-i18n="set.currency">Currency (read-only for now)</label>
-        <input id="curDisp" type="text" readonly>
-      </div>
-      <div class="actions">
-        <button id="saveBtn" data-i18n="set.save">Save</button>
-        <div class="seedline">
-          <button id="seedBtn" data-i18n="set.seed">Seed demo data (+2)</button>
-          <span class="seedpill">Count: <strong id="seedCount">0</strong></span>
-        </div>
-        <button id="clearBtn" data-i18n="set.clear">Clear data</button>
-        <button id="force-update" class="more-update" data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
-      </div>
-    `;
-    host.appendChild(wrap);
-
-    $('#langSel').value = App.lang;
-    $('#planSel').value = App.plan;
-    $('#roleSel').value = App.role;
-    $('#curDisp').value = `${App.currency.code} (${App.currency.symbol}) — ${App.currency.locale}`;
-    refreshSeedUI();
-
-    $('#saveBtn').addEventListener('click', ()=>{
-      App.lang = $('#langSel').value;
-      App.plan = $('#planSel').value;
-      App.role = $('#roleSel').value;
-      App.save();
-      applyI18n();
-      alert('Saved.');
+  function mountPlaceholders(){
+    const fillers = {
+      quotes:'ph.quotes',
+      history:'ph.history',
+      customers:'ph.customers',
+      presets:'ph.presets',
+      analytics:'ph.analytics',
+      settings:'ph.settings',
+      business:'ph.business',
+      resources:'ph.resources'
+    };
+    Object.entries(fillers).forEach(([k,key])=>{
+      const el = $('#tab-'+k);
+      if (el && !el.dataset.mounted){
+        const block = document.createElement('div');
+        block.className = 'placeholder'; block.textContent = t(key);
+        el.appendChild(block); el.dataset.mounted='1';
+      } else if (el){
+        const p = el.querySelector('.placeholder');
+        if (p) p.textContent = t(key);
+      }
     });
-
-    $('#seedBtn').addEventListener('click', ()=>{
-      const n = Number(localStorage.getItem('QAM_SEED')||'0')+2;
-      localStorage.setItem('QAM_SEED', String(n));
-      refreshSeedUI();
-    });
-
-    $('#clearBtn').addEventListener('click', async ()=>{
-      try{
-        localStorage.clear();
-        if ('caches' in window){
-          const keys = await caches.keys();
-          await Promise.all(keys.map(k=>caches.delete(k)));
-        }
-      }catch(_){}
-      location.reload();
-    });
-
-    $('#force-update')?.addEventListener('click', forceUpdate);
   }
 
   // -----------------------------
@@ -276,31 +283,99 @@
     } catch(e){}
     location.reload();
   }
+  function initForceUpdate(){
+    $('#force-update')?.addEventListener('click', forceUpdate);
+  }
+
+  // -----------------------------
+  // Simple settings demo wiring
+  // (uses Toast & Confirm)
+  // -----------------------------
+  function wireSettingsDemo(){
+    const pane = $('#tab-settings');
+    if (!pane) return;
+
+    // Build a tiny demo form once
+    if (!pane.dataset.demoBuilt){
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `
+        <div class="placeholder" style="border-style:solid">
+          <div style="margin-bottom:8px"><strong>Settings demo</strong></div>
+          <label>Language:&nbsp;
+            <select id="lang">
+              <option value="en">English</option>
+              <option value="es">Español</option>
+            </select>
+          </label>
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+            <button id="save-btn" class="btn primary">Save</button>
+            <button id="seed-btn" class="btn">Seed Demo (+2)</button>
+            <button id="clear-btn" class="btn danger">Clear Data</button>
+          </div>
+          <div style="margin-top:8px;font-size:.9rem;color:var(--muted)">
+            Seed count: <span id="seed-count">0</span>
+          </div>
+        </div>
+      `;
+      pane.appendChild(wrap);
+      pane.dataset.demoBuilt = '1';
+    }
+
+    // Restore state to controls
+    $('#lang').value = App.lang;
+    $('#seed-count').textContent = String(parseInt(localStorage.getItem('QAM_SEED')||'0',10));
+
+    // Save
+    $('#save-btn').onclick = () => {
+      App.lang = $('#lang').value;
+      App.save();
+      applyI18n();
+      mountPlaceholders();
+      showToast(t('toast.saved'), 'ok');
+    };
+
+    // Seed demo counter
+    $('#seed-btn').onclick = () => {
+      const n = (parseInt(localStorage.getItem('QAM_SEED')||'0',10) + 2);
+      localStorage.setItem('QAM_SEED', String(n));
+      $('#seed-count').textContent = String(n);
+      showToast('Seed +2', 'ok');
+    };
+
+    // Clear with confirm
+    $('#clear-btn').onclick = async () => {
+      const ok = await confirmDialog(t('confirm.clear'));
+      if (!ok) return;
+      App.clearAll();
+      showToast(t('toast.cleared'), 'err');
+      location.reload();
+    };
+  }
 
   // -----------------------------
   // Boot
   // -----------------------------
-  document.addEventListener('DOMContentLoaded', ()=>{
+  document.addEventListener('DOMContentLoaded', () => {
     App.load();
     applyI18n();
-    setOnlineStatus(); addEventListener('online',setOnlineStatus); addEventListener('offline',setOnlineStatus);
+    initNet();
     initTabs();
-    initInstallUI();
-    mountSettings();
-    refreshSeedUI();
+    initForceUpdate();
+    mountPlaceholders();
+    wireSettingsDemo();
     App.save();
   });
 
   // -----------------------------
   // SW registration
   // -----------------------------
-  if ('serviceWorker' in navigator){
-    window.addEventListener('load', async ()=>{
-      try{
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try {
         const reg = await navigator.serviceWorker.register('./service-worker.js');
         setSWBadge(reg.active ? 'registered' : 'installing');
         navigator.serviceWorker.addEventListener('controllerchange', ()=> setSWBadge('updated'));
-      }catch(e){
+      } catch(e){
         setSWBadge('error');
       }
     });
