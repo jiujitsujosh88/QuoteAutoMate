@@ -3,7 +3,7 @@
   // Minimal App State
   // -----------------------------
   const App = {
-    version: '1.0.0-step1-toasts',
+    version: '1.0.1-step1b-toasts+role-plan',
     plan: 'lite',              // 'lite' | 'pro' (dev toggle only)
     role: 'tech',              // 'tech' | 'sa' | 'owner'
     lang: 'en',                // 'en' | 'es' (sample)
@@ -24,9 +24,7 @@
       } catch(_) {}
     },
     clearAll(){
-      try {
-        localStorage.clear();
-      } catch(_) {}
+      try { localStorage.clear(); } catch(_) {}
     }
   };
 
@@ -59,7 +57,7 @@
       'ph.customers': 'Customer list & quick search.',
       'ph.presets': 'Your saved presets will appear here.',
       'ph.analytics': 'KPIs & date-range reports.',
-      'ph.settings': 'Language, currency, role.',
+      'ph.settings': 'Language, plan, role.',
       'ph.business': 'Business name, logo, contact, financial defaults.',
       'ph.resources': 'Employees, sublets, suppliers.',
 
@@ -68,7 +66,17 @@
       'toast.cleared': 'Cleared',
       'toast.error': 'Something went wrong',
       'confirm.title': 'Please confirm',
-      'confirm.clear': 'This will erase local data. Continue?'
+      'confirm.clear': 'This will erase local data. Continue?',
+
+      // settings labels
+      'settings.section': 'Settings demo',
+      'settings.lang': 'Language',
+      'settings.plan': 'Plan',
+      'settings.role': 'Role',
+      'settings.save': 'Save',
+      'settings.seed': 'Seed Demo (+2)',
+      'settings.clear': 'Clear Data',
+      'settings.seedcount': 'Seed count:'
     },
     es: {
       'app.title': 'Quote AutoMate',
@@ -91,7 +99,7 @@
       'ph.customers': 'Lista de clientes y búsqueda rápida.',
       'ph.presets': 'Tus preajustes aparecerán aquí.',
       'ph.analytics': 'KPIs e informes por rango de fechas.',
-      'ph.settings': 'Idioma, moneda, rol.',
+      'ph.settings': 'Idioma, plan, rol.',
       'ph.business': 'Nombre del negocio, logo, contacto y valores por defecto.',
       'ph.resources': 'Empleados, subcontratos, proveedores.',
 
@@ -99,7 +107,16 @@
       'toast.cleared': 'Borrado',
       'toast.error': 'Algo salió mal',
       'confirm.title': 'Confirma por favor',
-      'confirm.clear': 'Esto borrará los datos locales. ¿Continuar?'
+      'confirm.clear': 'Esto borrará los datos locales. ¿Continuar?',
+
+      'settings.section': 'Demo de ajustes',
+      'settings.lang': 'Idioma',
+      'settings.plan': 'Plan',
+      'settings.role': 'Rol',
+      'settings.save': 'Guardar',
+      'settings.seed': 'Semilla Demo (+2)',
+      'settings.clear': 'Borrar datos',
+      'settings.seedcount': 'Contador de semilla:'
     }
   };
   const t = (key) => {
@@ -124,7 +141,6 @@
       if (el) el.setAttribute('aria-label', t(key));
     });
 
-    // header title
     const title = document.querySelector('.app-title');
     if (title) title.textContent = t('app.title');
   }
@@ -142,9 +158,7 @@
       <span class="toast-msg">${message}</span>
       <button class="toast-close" aria-label="Close">×</button>
     `;
-    const close = () => {
-      toast.remove();
-    };
+    const close = () => toast.remove();
     toast.querySelector('.toast-close').addEventListener('click', close);
     wrap.appendChild(toast);
     if (ms > 0) setTimeout(close, ms);
@@ -154,7 +168,7 @@
   // -----------------------------
   // Confirm dialog (Promise-based)
   // -----------------------------
-  function confirmDialog(message, opts={}){
+  function confirmDialog(message){
     return new Promise((resolve)=>{
       const dlg = document.getElementById('confirm-dialog');
       const msg = document.getElementById('confirm-message');
@@ -242,7 +256,7 @@
   }
 
   // -----------------------------
-  // Placeholders (unchanged)
+  // Placeholders
   // -----------------------------
   function mountPlaceholders(){
     const fillers = {
@@ -288,32 +302,51 @@
   }
 
   // -----------------------------
-  // Simple settings demo wiring
-  // (uses Toast & Confirm)
+  // Settings demo (now with Plan + Role)
   // -----------------------------
   function wireSettingsDemo(){
     const pane = $('#tab-settings');
     if (!pane) return;
 
-    // Build a tiny demo form once
     if (!pane.dataset.demoBuilt){
       const wrap = document.createElement('div');
       wrap.innerHTML = `
         <div class="placeholder" style="border-style:solid">
-          <div style="margin-bottom:8px"><strong>Settings demo</strong></div>
-          <label>Language:&nbsp;
-            <select id="lang">
-              <option value="en">English</option>
-              <option value="es">Español</option>
-            </select>
-          </label>
-          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
-            <button id="save-btn" class="btn primary">Save</button>
-            <button id="seed-btn" class="btn">Seed Demo (+2)</button>
-            <button id="clear-btn" class="btn danger">Clear Data</button>
+          <div style="margin-bottom:8px"><strong data-i18n="settings.section">Settings demo</strong></div>
+
+          <div style="display:grid;gap:8px;grid-template-columns:1fr;">
+            <label><span data-i18n="settings.lang">Language</span>:
+              <select id="lang">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+              </select>
+            </label>
+
+            <label><span data-i18n="settings.plan">Plan</span>:
+              <select id="plan">
+                <option value="lite">Lite</option>
+                <option value="pro">Pro</option>
+              </select>
+            </label>
+
+            <label><span data-i18n="settings.role">Role</span>:
+              <select id="role">
+                <option value="tech">Tech</option>
+                <option value="sa">Service Advisor</option>
+                <option value="owner">Owner</option>
+              </select>
+            </label>
           </div>
+
+          <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+            <button id="save-btn" class="btn primary" data-i18n="settings.save">Save</button>
+            <button id="seed-btn" class="btn" data-i18n="settings.seed">Seed Demo (+2)</button>
+            <button id="clear-btn" class="btn danger" data-i18n="settings.clear">Clear Data</button>
+          </div>
+
           <div style="margin-top:8px;font-size:.9rem;color:var(--muted)">
-            Seed count: <span id="seed-count">0</span>
+            <span data-i18n="settings.seedcount">Seed count:</span>
+            <span id="seed-count">0</span>
           </div>
         </div>
       `;
@@ -323,11 +356,15 @@
 
     // Restore state to controls
     $('#lang').value = App.lang;
+    $('#plan').value = App.plan;
+    $('#role').value = App.role;
     $('#seed-count').textContent = String(parseInt(localStorage.getItem('QAM_SEED')||'0',10));
 
     // Save
     $('#save-btn').onclick = () => {
       App.lang = $('#lang').value;
+      App.plan = $('#plan').value;
+      App.role = $('#role').value;
       App.save();
       applyI18n();
       mountPlaceholders();
