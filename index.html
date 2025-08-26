@@ -6,11 +6,10 @@
   <title>Quote AutoMate – Skeleton</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f1115"/>
-
   <style>
     :root{
       --bg:#0f1115; --card:#151924; --text:#e9eef8; --muted:#a9b3c9;
-      --accent:#3aa3ff; --border:#232836; --ok:#35d07f; --warn:#ffcc66; --err:#ff7b7b;
+      --accent:#3aa3ff; --border:#232836;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -22,10 +21,9 @@
       justify-content:space-between;padding:12px 16px;background:linear-gradient(180deg,rgba(21,25,36,.95),rgba(21,25,36,.85));
       backdrop-filter: blur(8px);border-bottom:1px solid var(--border);}
     .app-title{font-weight:700;letter-spacing:.2px}
-    .badges{display:flex;gap:8px;align-items:center}
-    .chip{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;}
-    .online{color:#5ee17d}.offline{color:#ff8b8b}
-    .sw-badge{opacity:.85}
+    .net{font-size:.78rem;padding:4px 8px;border-radius:999px;border:1px solid var(--border);background:#101521;}
+    .net.online{color:#5ee17d}.net.offline{color:#ff8b8b}
+    .sw-badge{font-size:.78rem;margin-left:8px;opacity:.8}
 
     /* Main */
     #tab-content{padding:16px;padding-bottom:96px;min-height:calc(100dvh - 120px);}
@@ -35,15 +33,24 @@
       margin-bottom:10px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;}
     .placeholder{margin-top:8px;padding:12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted);}
 
-    /* Bottom Tabbar (5 + kebab) */
+    /* Simple card styles (for Settings UI) */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin:12px 0;}
+    .row{display:flex;gap:10px;align-items:center;margin:8px 0;}
+    .row label{min-width:110px;color:var(--muted);font-size:.95rem;}
+    select,button{background:#101521;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px}
+    select{flex:1}
+    .actions{display:flex;gap:8px;margin-top:8px}
+    .btn{flex:1}
+    .btn.primary{background:#182034}
+
+    /* Bottom Tabbar (5 + More) */
     .tabbar{position:fixed;bottom:0;left:0;right:0;z-index:20;display:grid;grid-template-columns:repeat(6,1fr);
       gap:0;padding:8px;border-top:1px solid var(--border);
       background:linear-gradient(180deg,rgba(15,17,21,.8),rgba(15,17,21,.95));backdrop-filter: blur(8px);}
     .tab-btn{background:transparent;color:var(--muted);border:none;padding:10px 6px;border-radius:10px;font-weight:600;letter-spacing:.2px}
     .tab-btn.active{color:var(--text);background:rgba(58,163,255,.14);}
-    .tab-btn.kebab{font-size:18px;line-height:1;padding:10px 0}
 
-    /* More dialog (native <dialog>) */
+    /* More dialog */
     dialog#more-dialog{border:none;padding:0;background:transparent}
     dialog#more-dialog::backdrop{background:rgba(0,0,0,.35)}
     .more-sheet{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top-left-radius:18px;border-top-right-radius:18px;
@@ -55,36 +62,16 @@
     .more-close{text-align:center;background:#182034}
     .more-update{border-style:dashed}
 
-    /* Toasts */
-    .toast-wrap{position:fixed;left:0;right:0;bottom:74px;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:50;pointer-events:none}
-    .toast{pointer-events:auto;min-width:200px;max-width:90vw;background:#101521;border:1px solid var(--border);color:var(--text);
-      padding:10px 12px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;gap:10px;align-items:center;animation:toastIn .18s ease-out}
-    .toast.ok{border-color:rgba(53,208,127,.4)} .dot.ok{background:var(--ok)}
-    .toast.warn{border-color:rgba(255,204,102,.4)} .dot.warn{background:var(--warn)}
-    .toast.err{border-color:rgba(255,123,123,.4)} .dot.err{background:var(--err)}
-    .dot{width:10px;height:10px;border-radius:999px;flex:0 0 auto;opacity:.9}
-    .toast-msg{flex:1}
-    .toast-close{background:transparent;border:none;color:var(--muted);font-weight:700}
-    @keyframes toastIn{from{transform:translateY(8px);opacity:.6}to{transform:translateY(0);opacity:1}}
-
-    /* Confirm dialog */
-    dialog#confirm-dialog{border:none;padding:0;background:transparent}
-    dialog#confirm-dialog::backdrop{background:rgba(0,0,0,.35)}
-    .confirm-card{margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:12px;max-width:420px}
-    .confirm-body{padding:14px 14px 6px 14px}
-    .confirm-actions{display:flex;gap:10px;padding:10px 14px 14px 14px}
-    .btn{background:#101521;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
-    .btn.primary{background:#182034;border-color:#2a3450}
-    .btn.danger{border-color:rgba(255,123,123,.5)}
+    small.hint{color:var(--muted)}
   </style>
 </head>
 <body>
   <!-- Header -->
   <header class="app-header">
     <div class="app-title" data-i18n="app.title">Quote AutoMate</div>
-    <div class="badges">
-      <span id="net-status" class="chip">Online</span>
-      <span id="sw-status" class="chip sw-badge">SW: —</span>
+    <div>
+      <span id="net-status" class="net">Online</span>
+      <span id="sw-status" class="sw-badge">SW: —</span>
     </div>
   </header>
 
@@ -97,48 +84,67 @@
     <section id="tab-presets" class="tab-pane" role="region" aria-label="Presets"></section>
     <section id="tab-analytics" class="tab-pane" role="region" aria-label="Analytics"></section>
 
-    <!-- Secondary Tabs (via More) -->
-    <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden></section>
+    <!-- Settings (visible via More) -->
+    <section id="tab-settings" class="tab-pane" role="region" aria-label="Settings" hidden>
+      <div class="card">
+        <div class="row">
+          <label for="plan-select" data-i18n="settings.plan">Plan</label>
+          <select id="plan-select">
+            <option value="lite">Lite</option>
+            <option value="pro">Pro</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="role-select" data-i18n="settings.role">Role</label>
+          <select id="role-select">
+            <option value="tech">Technician</option>
+            <option value="sa">Service Advisor</option>
+            <option value="owner">Owner</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="lang-select" data-i18n="settings.lang">Language</label>
+          <select id="lang-select">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+        </div>
+        <small class="hint" data-i18n="settings.hint">These are dev toggles for now; purchases will unlock features later.</small>
+      </div>
+
+      <div class="card">
+        <div class="actions">
+          <button id="seed-demo" class="btn" data-i18n="settings.seed">Seed demo +2</button>
+          <button id="clear-data" class="btn" data-i18n="settings.clear">Clear data</button>
+          <button id="save-settings" class="btn primary" data-i18n="settings.save">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Business & Resources shells -->
     <section id="tab-business" class="tab-pane" role="region" aria-label="Business Info" hidden></section>
     <section id="tab-resources" class="tab-pane" role="region" aria-label="Resources" hidden></section>
   </main>
 
-  <!-- Bottom Tab Bar -->
+  <!-- Bottom Tab Bar (5 main + kebab) -->
   <nav class="tabbar" aria-label="Bottom Tabs">
-    <button class="tab-btn" data-tab="quotes" data-i18n="tabs.quotes">Quotes</button>
-    <button class="tab-btn" data-tab="history" data-i18n="tabs.history">History</button>
+    <button class="tab-btn" data-tab="quotes"    data-i18n="tabs.quotes">Quotes</button>
+    <button class="tab-btn" data-tab="history"   data-i18n="tabs.history">History</button>
     <button class="tab-btn" data-tab="customers" data-i18n="tabs.customers">Customers</button>
-    <button class="tab-btn" data-tab="presets" data-i18n="tabs.presets">Presets</button>
+    <button class="tab-btn" data-tab="presets"   data-i18n="tabs.presets">Presets</button>
     <button class="tab-btn" data-tab="analytics" data-i18n="tabs.analytics">Analytics</button>
-    <button class="tab-btn kebab" data-tab="more" aria-label="More" title="More">⋮</button>
+    <button class="tab-btn" data-tab="more" aria-label="More" title="More">⋮</button>
   </nav>
 
   <!-- More dialog -->
   <dialog id="more-dialog" aria-labelledby="more-title">
     <div class="more-sheet">
       <div id="more-title" class="more-title" data-i18n="more.title">More</div>
-      <button class="more-item" data-tab="settings" data-i18n="more.settings">Settings</button>
-      <button class="more-item" data-tab="business" data-i18n="more.business">Business Info</button>
+      <button class="more-item" data-tab="settings"  data-i18n="more.settings">Settings</button>
+      <button class="more-item" data-tab="business"  data-i18n="more.business">Business Info</button>
       <button class="more-item" data-tab="resources" data-i18n="more.resources">Resources</button>
-      <button class="more-update" id="force-update" data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
-      <button id="more-close" class="more-close" data-i18n="more.close">Close</button>
-    </div>
-  </dialog>
-
-  <!-- Toast container -->
-  <div id="toast-wrap" class="toast-wrap" aria-live="polite" aria-atomic="true"></div>
-
-  <!-- Confirm dialog -->
-  <dialog id="confirm-dialog" aria-labelledby="confirm-title">
-    <div class="confirm-card">
-      <div class="confirm-body">
-        <div id="confirm-title" class="app-title" style="margin-bottom:8px">Please confirm</div>
-        <div id="confirm-message" class="muted"></div>
-      </div>
-      <div class="confirm-actions">
-        <button id="confirm-cancel" class="btn">Cancel</button>
-        <button id="confirm-ok" class="btn primary">OK</button>
-      </div>
+      <button class="more-update" id="force-update"  data-i18n="more.forceUpdate">Force Update (clear cache & reload)</button>
+      <button id="more-close" class="more-close"     data-i18n="more.close">Close</button>
     </div>
   </dialog>
 
